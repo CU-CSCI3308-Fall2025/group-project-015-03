@@ -1,0 +1,74 @@
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #fff5f7; /*  pink bg */
+  color: #333;
+}
+
+/* nav */
+.navbar {
+  font-family: "Inter", sans-serif;
+  background-color: #ffe0ec; /* light pink bar */
+}
+
+.navbar-brand {
+  color: #d63384 !important; /* vibrant pink */
+}
+
+.nav-pill {
+  padding: 0.5rem 1.2rem;
+  border: 2px solid #d63384;
+  border-radius: 30px;
+  color: #d63384;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-pill:hover,
+.nav-pill.active {
+  background-color: #d63384;
+  color: white;
+}
+
+/* cards */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+/* buttons */
+.btn-primary,
+.btn-outline-primary {
+  border-radius: 25px;
+}
+
+.btn-primary {
+  background-color: #d63384;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #b82c71;
+}
+
+.btn-outline-primary {
+  border-color: #d63384;
+  color: #d63384;
+}
+
+.btn-outline-primary:hover {
+  background-color: #d63384;
+  color: white;
+}
+
+/* login */
+.login-container {
+  background: white;
+  padding: 2rem;
+  max-width: 400px;
+  margin: 3rem auto;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
