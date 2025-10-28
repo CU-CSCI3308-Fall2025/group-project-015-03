@@ -1,0 +1,39 @@
+meetings notes:
+- summer started with a basic index.js file (didn't push correctly, will check back later)
+- jackson added a readme file with info, a meeting notes txt, other files, and reformatted the github
+- maggie made the basic html files and code skeleton
+- maggie's notes:
+        monday october 27
+        Today my focus was on getting a basic skeleton for our pages. I wanted to get something started, so we as a group can build and branch from here.
+            main.js:
+                - the only changes here were for highlighting what page you were on (in the navbar)
+            style.css:
+                - here I just made some cohesive css so that the pages look good together in a similar theme. 
+                - this will definitely get more complex as the project is developed, but again i just wanted a basic skeleton for rn
+            feed.html
+                - this was just to have an idea of what the posts should look like on a users feed, after they answer the daily prompt
+                linking to navbar and to index.html (now the login page)
+            friends.html
+                - basic outline for what the friends page might look like
+                - buttons do not work
+                - links to other pages on nav
+            index.html
+                - right now is serving as the login page, doesn’t actually check if a user is logged in or not, doesn’t have a way to store a user if they are logged in
+                - register button does not link to anything
+                - links to other pages on nav
+            profile.html
+                - serves as a place for what the profile would look like
+                - very basic does not have all the features we talked about
+                - we will have to change around later where the journal archives and new journals go, they should be in the my journal page not the profile page
+                - links to other pages on nav
+            prompts.html
+                - again a basic setup for what the prompts might look like when presented to user
+                - should later be the first thing a user sees when they login or return to the page on a new day
+                - links to other pages on nav
+
+
+goals for this next week:
+- maggie is going to work flow of one page to the next 
+- maya is going to work on buttons through styling and functionality
+- summer is going to work on database and sql
+- jackson is going to work on integrating handlebars
