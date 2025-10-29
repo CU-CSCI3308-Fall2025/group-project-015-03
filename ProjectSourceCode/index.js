@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 
 // database configuration
 const dbConfig = {
-  host: 'localhost', // the database server (changed for local testing)
+  host: 'db', // the database server 
   port: 5432, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
@@ -17,15 +17,15 @@ const dbConfig = {
 
 const db = pgp(dbConfig); 
 
-// // test your database
-// db.connect()
-//   .then(obj => {
-//     console.log('Database connection successful'); // you can view this message in the docker compose logs
-//     obj.done(); // success, release the connection;
-//   })
-//   .catch(error => {
-//     console.log('ERROR:', error.message || error);
-//   });
+// test your database
+db.connect()
+  .then(obj => {
+    console.log('Database connection successful'); // you can view this message in the docker compose logs
+    obj.done(); // success, release the connection;
+  })
+  .catch(error => {
+    console.log('ERROR:', error.message || error);
+  });
 
 // middleware
 app.use(bodyParser.json());
