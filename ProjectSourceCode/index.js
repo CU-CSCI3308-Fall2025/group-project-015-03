@@ -8,24 +8,32 @@ const bodyParser = require('body-parser');
 
 // database configuration
 const dbConfig = {
-  host: 'db', // the database server
+  host: 'localhost', // the database server (changed for local testing)
   port: 5432, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
-// test your database
-db.connect()
-  .then(obj => {
-    console.log('Database connection successful'); // you can view this message in the docker compose logs
-    obj.done(); // success, release the connection;
-  })
-  .catch(error => {
-    console.log('ERROR:', error.message || error);
-  });
+const db = pgp(dbConfig); 
 
-const db = pgp(dbConfig);
+// // test your database
+// db.connect()
+//   .then(obj => {
+//     console.log('Database connection successful'); // you can view this message in the docker compose logs
+//     obj.done(); // success, release the connection;
+//   })
+//   .catch(error => {
+//     console.log('ERROR:', error.message || error);
+//   });
+
+// middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// serve static files (for your frontend)
+app.use(express.static(path.join(__dirname, 'src/resources')));
+app.use(express.static(path.join(__dirname, 'src/views')));
 
 app.get('/register', (req, res) => {
     //TODO
@@ -37,4 +45,8 @@ app.get('/login', (req, res) => {
 
 app.get('/home', (req, res) => {
     //TODO
+});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
