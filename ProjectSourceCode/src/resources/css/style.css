@@ -1,18 +1,20 @@
-
+/* === Global Styles === */
 body {
   font-family: "Inter", sans-serif;
-  background-color: #fff5f7; /*  pink bg */
+  background-color: #fff5f7; /* light pink background */
   color: #333;
+  margin: 0;
+  padding: 0;
 }
 
-/* nav */
+/* === Navbar === */
 .navbar {
   font-family: "Inter", sans-serif;
-  background-color: #ffe0ec; /* light pink bar */
+  background-color: #ffe0ec; /* soft light pink bar */
 }
 
 .navbar-brand {
-  color: #d63384 !important; /* vibrant pink */
+  color: #d63384 !important; /* vibrant pink for brand text */
 }
 
 .nav-pill {
@@ -31,14 +33,19 @@ body {
   color: white;
 }
 
-/* cards */
+/* === Card Styles === */
 .card {
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   border: none;
+  transition: transform 0.2s ease-in-out;
 }
 
-/* buttons */
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* === Buttons === */
 .btn-primary,
 .btn-outline-primary {
   border-radius: 25px;
@@ -63,7 +70,7 @@ body {
   color: white;
 }
 
-/* login */
+/* === Login Page === */
 .login-container {
   background: white;
   padding: 2rem;
@@ -71,4 +78,65 @@ body {
   margin: 3rem auto;
   border-radius: 16px;
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* === Prompt Page === */
+.prompt-page {
+  background-color: #fff0f6; /* slightly deeper pink than main app */
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 3rem 1rem;
+}
+
+.prompt-container {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 18px;
+  padding: 2.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+.prompt-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #d63384, #9b5de5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.prompt-date {
+  color: #e85b9a;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+/* === prompt cards === */
+.prompt-card {
+  border-radius: 12px;
+  border: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.prompt-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* === prompts buttons === */
+.btn-prompt {
+  background-color: #d84ba3; 
+  color: white;
+  border-radius: 28px;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+.btn-prompt:hover {
+  background-color: #b43786;
+  transform: translateY(-2px);
 }
