@@ -1,142 +1,74 @@
-/* === Global Styles === */
 body {
   font-family: "Inter", sans-serif;
-  background-color: #fff5f7; /* light pink background */
+  background-color: #fff5f7;
   color: #333;
-  margin: 0;
-  padding: 0;
 }
 
-/* === Navbar === */
+/* nav */
 .navbar {
-  font-family: "Inter", sans-serif;
-  background-color: #ffe0ec; /* soft light pink bar */
+  background-color: #ffe0ec;
 }
-
-.navbar-brand {
-  color: #d63384 !important; /* vibrant pink for brand text */
-}
-
+.navbar-brand { color: #d63384 !important; }
 .nav-pill {
-  padding: 0.5rem 1.2rem;
   border: 2px solid #d63384;
   border-radius: 30px;
   color: #d63384;
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  transition: 0.2s;
+  padding: 0.5rem 1.2rem;
 }
-
 .nav-pill:hover,
 .nav-pill.active {
   background-color: #d63384;
   color: white;
 }
 
-/* === Card Styles === */
-.card {
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  border: none;
-  transition: transform 0.2s ease-in-out;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-}
-
-/* === Buttons === */
+/* buttons */
 .btn-primary,
-.btn-outline-primary {
-  border-radius: 25px;
-}
-
-.btn-primary {
-  background-color: #d63384;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #b82c71;
-}
-
+.btn-outline-primary { border-radius: 25px; }
+.btn-primary { background-color: #d63384; border: none; }
+.btn-primary:hover { background-color: #b82c71; }
 .btn-outline-primary {
   border-color: #d63384;
   color: #d63384;
 }
-
 .btn-outline-primary:hover {
   background-color: #d63384;
   color: white;
 }
 
-/* === Login Page === */
-.login-container {
-  background: white;
-  padding: 2rem;
-  max-width: 400px;
-  margin: 3rem auto;
-  border-radius: 16px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* === Prompt Page === */
-.prompt-page {
-  background-color: #fff0f6; /* slightly deeper pink than main app */
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  padding: 3rem 1rem;
-}
-
-.prompt-container {
-  width: 100%;
-  max-width: 980px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 18px;
-  padding: 2.5rem;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-}
-
-.prompt-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(90deg, #d63384, #9b5de5);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.prompt-date {
-  color: #e85b9a;
-  font-weight: 600;
-  margin-bottom: 1.25rem;
-}
-
-/* === prompt cards === */
-.prompt-card {
-  border-radius: 12px;
-  border: none;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.prompt-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-}
-
-/* === prompts buttons === */
 .btn-prompt {
-  background-color: #d84ba3; 
+  background-color: #ff6fb5;
   color: white;
   border-radius: 28px;
   padding: 0.5rem 0.75rem;
   border: none;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+.btn-prompt:hover { background-color: #e6559f; color: white; }
+
+/* profile */
+.text-pink { color: #d63384; }
+.border-pink { border-color: #d63384 !important; }
+.bg-light-pink { background-color: #fff0f6; }
+
+#profile-pic {
+  object-fit: cover;
+  background-color: white;
 }
 
-.btn-prompt:hover {
-  background-color: #b43786;
-  transform: translateY(-2px);
+#change-pic-container label {
+  font-size: 0.9rem;
+  padding: 0.4rem 1rem;
 }
+
+/* modal */
+.modal-content { border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+.modal-header { background-color: #fff0f6; }
+.modal-footer { background-color: #fff8fb; }
+
+/* theme colors */
+body[data-theme="pink"] { background-color: #fff0f6; }
+body[data-theme="lavender"] { background-color: #f5f0ff; }
+body[data-theme="blue"] { background-color: #e8f1ff; }
+
+
