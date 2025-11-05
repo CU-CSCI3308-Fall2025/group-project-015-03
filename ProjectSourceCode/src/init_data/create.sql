@@ -21,4 +21,6 @@ DROP TABLE IF EXISTS responses_to_users CASCADE;
 CREATE TABLE IF NOT EXISTS response_to_users (
     username VARCHAR(20) PRIMARY KEY,
     response_id INT NOT NULL
+    FOREIGN KEY username REFERENCES users(username),
+    FOREIGN KEY response_id REFERENCES responses(response_id)
 );
