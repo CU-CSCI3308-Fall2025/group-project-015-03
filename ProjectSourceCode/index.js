@@ -14,24 +14,24 @@ const hbs = handlebars.create({
 
 // database configuration
 const dbConfig = {
-  host: 'db', // the database server 
+  host: 'db', // the database server
   port: 5432, // the database port
   database: process.env.POSTGRES_DB, // the database name
   user: process.env.POSTGRES_USER, // the user account to connect with
   password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
-const db = pgp(dbConfig); 
+const db = pgp(dbConfig);
 
 // test your database
 db.connect()
-  .then(obj => {
-    console.log('Database connection successful'); // you can view this message in the docker compose logs
-    obj.done(); // success, release the connection;
-  })
-  .catch(error => {
-    console.log('ERROR:', error.message || error);
-});
+    .then(obj => {
+      console.log('Database connection successful'); // you can view this message in the docker compose logs
+      obj.done(); // success, release the connection;
+    })
+    .catch(error => {
+      console.log('ERROR:', error.message || error);
+    });
 
 // middleware
 app.engine('hbs', hbs.engine);
@@ -49,19 +49,54 @@ app.get('/', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-    res.render('pages/index', { title: 'Register'});
+  res.render('pages/index', { title: 'Register'});
 });
 
 app.get('/login', (req, res) => {
-    res.render('pages/index', { title: 'Login'})
+  res.render('pages/index', { title: 'Login'})
 });
 
 app.get('/home', (req, res) => {
-    res.render('pages/feed', { title: 'Home'});
+  res.render('pages/feed', { title: 'Home'});
 });
 
 app.get('/profile', (req, res) => {
-    res.render('pages/profile', { layout: 'secondary' , title: 'Profile' })
+  res.render('pages/profile', { layout: 'secondary' , title: 'Profile' })
+});
+
+// Allow form submissions
+app.use(express.urlencoded ({ extended:true }));
+
+// Temporary "database"
+let entries = [
+  { title: 'First Entry', text: 'Started journaling today!'},
+  { title: 'Second Entry', text: 'Feeling productive and creative.'}
+];
+
+//Journal list page
+app.get('/journal', (req, res) => {
+  res.render('pages/journal', {
+    layout: 'main',
+    entries
+  })
+});
+
+// Add new entry form
+app.get('/journal/new', (req,res) => {
+  res.render('pages/newJournal', {layout: 'main'});
+});
+
+// Handle form submission
+app.get('/jourmal/new', (req, res) => {
+  const{title, text} = req.body;
+  entries.push({title, text});
+  res.redirect('/journal');
+});
+
+// temporary backend so the page doesnt crash when you save new journal entry
+app.post('/journal/new', (req, res) => {
+  console.log('Received new entry (but backend not connected yet)');
+  res.redirect('/journal');
 });
 
 const PORT = process.env.PORT || 3000;
