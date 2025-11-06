@@ -24,3 +24,11 @@ CREATE TABLE IF NOT EXISTS response_to_users (
     FOREIGN KEY username REFERENCES users(username),
     FOREIGN KEY response_id REFERENCES responses(response_id)
 );
+
+DROP TABLE IF EXISTS responses_to_prompts;
+CREATE TABLE IF NOT EXISTS responses_to_prompts (
+    response_id INT NOT NULL,
+    prompt_id INT NOT NULL,
+    FOREIGN KEY response_id REFERENCES responses(response_id),
+    FOREIGN KEY prompt_id REFERENCES prompts(prompt_id)
+);
