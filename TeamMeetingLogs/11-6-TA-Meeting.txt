@@ -1,0 +1,6 @@
+- jackson is going to work on fixing the handlebars and integrating the login
+- summer is going to connect databases, prompts pages, and integrating 
+- maya is going to work on the journal page and create a logo to be used throughout the page
+- logo as the website logo in the header partial 
+- maggie is going to work on adding more bulk and info to the pages in general (less just skeleton)
+
