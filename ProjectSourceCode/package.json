@@ -4,10 +4,7 @@
   "description": "A journaling social app for college students.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "prestart": "npm install",
-    "test": "mocha",
-    "testandrun": "npm run prestart && npm run test && npm start"
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.19.2",
