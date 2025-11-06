@@ -9,7 +9,7 @@ services:
       - ./src/init_data:/docker-entrypoint-initdb.d
   web:
     build: .
-    user: 'node'
+    user: 'root'
     working_dir: /app
     env_file: .env
     environment:
@@ -21,6 +21,6 @@ services:
     volumes:
       - ./:/app
       - /app/node_modules 
-    command: 'npm start'
+    command: 'npm run testandrun'
 volumes:
   group-project:

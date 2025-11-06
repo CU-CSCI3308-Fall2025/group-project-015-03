@@ -61,7 +61,15 @@ app.get('/home', (req, res) => {
 });
 
 app.get('/profile', (req, res) => {
-  res.render('pages/profile', { layout: 'secondary' , title: 'Profile' })
+  res.render('pages/profile', { layout: 'main' , title: 'Profile' })
+});
+
+app.get('/feed', (req, res) => {
+  res.render('pages/feed', { layout: 'main', title: 'Feed'})
+});
+
+app.get('/friends', (req, res) => {
+  res.render('pages/friends', { layout: 'main', title: 'Friends'})
 });
 
 // Allow form submissions
