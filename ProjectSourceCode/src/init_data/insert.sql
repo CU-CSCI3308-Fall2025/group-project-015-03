@@ -1,12 +1,15 @@
 INSERT INTO users(
     username,
-    password
+    password,
+    pronouns,
+    nickname,
+    quote
 ) VALUES 
 (
-    'marcylake', 'tumblestackadmin'
+    'marcylake', 'tumblestackadmin', 'she/her', 'marbles', 'please let me have this dream'
 ),
 (
-    'keiko', 'purpledragon'
+    'keiko', 'purpledragon', 'it/its', 'k', 'im gonna be my own kind of hero'
 );
 
 INSERT INTO prompts(
