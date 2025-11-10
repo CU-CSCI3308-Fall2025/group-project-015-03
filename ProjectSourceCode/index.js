@@ -46,6 +46,7 @@ app.use(express.json());
 // serve static files (for your frontend)
 app.use(express.static(path.join(__dirname, 'src/resources')));
 
+
 app.use(session({
   secret: 'tumble-stack-secret-key',
   resave: false,
@@ -54,18 +55,28 @@ app.use(session({
 }));
 
 function requireLogin(req, res, next) {
+  // temporary bypass for frontend testing
   if (!req.session.user) {
-    return res.redirect('/login');
+    req.session.user = { username: 'admin' };
   }
   next();
 }
+// for integration later:
+// function requireLogin(req, res, next) {
+//   if (!req.session.user) {
+//     return res.redirect('/login');
+//   }
+//   next();
+// }
+
+
 
 app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
 app.get('/register', (req, res) => {
-  res.render('pages/register', { title: 'Register'});
+  res.render('pages/register', { layout: 'secondary', title: 'Register' });
 });
 
 app.post('/register', async (req, res) => {
@@ -92,13 +103,21 @@ app.post('/register', async (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  res.render('pages/index', { title: 'Login'})
+  res.render('pages/index', { layout: 'secondary', title: 'Login' });
 });
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    // temporary bypass: if admin/admin, skip DB check
+    if (username === 'admin' && password === 'admin') {
+      req.session.user = { username: 'admin' };
+      console.log('Logged in as admin (bypass)');
+      return res.redirect('/prompts');
+    }
+
+    // otherwise, try real DB lookup
     const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
 
     if (!user) {
@@ -112,13 +131,14 @@ app.post('/login', async (req, res) => {
 
     req.session.user = { username: user.username };
     console.log(`User logged in: ${username}`);
-    res.redirect('/feed');
+    res.redirect('/prompts');
 
   } catch (err) {
     console.error('Error logging in:', err);
     res.status(500).send('Server error');
   }
 });
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
@@ -138,12 +158,44 @@ app.get('/profile', requireLogin, (req, res) => {
 });
 
 app.get('/feed', requireLogin, (req, res) => {
-  res.render('pages/feed', { layout: 'main', title: 'Feed' , username: req.session.user.username});
+  const samplePosts = [
+    { username: 'Anonymous', text: 'Feeling peaceful today.' },
+    { username: 'Anonymous', text: 'Grateful for small moments.' }
+  ];
+
+  res.render('pages/feed', { 
+    layout: 'main', 
+    title: 'Feed', 
+    username: req.session.user.username,
+    posts: samplePosts // pass sample data to feed.hbs
+  });
 });
 
+
+
 app.get('/friends', requireLogin, (req, res) => {
-  res.render('pages/friends', { layout: 'main', title: 'Friends' , username: req.session.user.username});
+  res.render('pages/friends', {
+    layout: 'main',
+    title: 'Friends',
+    username: req.session.user.username
+  });
 });
+
+app.get('/prompts', requireLogin, (req, res) => {
+  const prompts = [
+    { title: 'Prompt One', text: 'What made you smile today?' },
+    { title: 'Prompt Two', text: 'What’s something you learned recently?' },
+    { title: 'Prompt Three', text: 'Describe a small win you had today.' }
+  ];
+
+  res.render('pages/prompts', {
+    layout: 'secondary',
+    title: 'Daily Prompts',
+    username: req.session.user.username,
+    prompts
+  });
+});
+
 
 // Temporary "database"
 let entries = [
@@ -156,7 +208,7 @@ app.get('/journal', requireLogin, (req, res) => {
   res.render('pages/journal', {
     layout: 'main',
     entries, 
-    title: 'Journal',
+    title: 'My Journal',
     username: req.session.user.username
   });
 });
@@ -168,7 +220,10 @@ app.get('/journal/new', (req,res) => {
 
 // temporary backend so the page doesnt crash when you save new journal entry
 app.post('/journal/new', (req, res) => {
-  console.log('Received new entry (but backend not connected yet)');
+  const { title, text } = req.body;
+  if (title && text) {
+    entries.push({ title, text }); // temporarily store in memory
+  }
   res.redirect('/journal');
 });
 
