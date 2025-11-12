@@ -1,0 +1,86 @@
+<main class="container my-5" id="profile-page">
+  <div class="text-center mb-4">
+    <!-- use /images/... because express serves public/ as static -->
+    <img id="profile-pic" src="/images/sun.png" alt="Profile Picture"
+         class="rounded-circle mb-2 border border-3 border-pink" width="120" height="120" />
+    <h3 class="text-pink fw-bold" id="display-username">{{username}}</h3>
+    <p class="text-muted" id="display-nickname">"{{username}}"</p>
+
+
+    <div id="change-pic-container" class="d-none mt-2">
+      <label for="profile-pic-input" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-camera"></i> Change Picture
+      </label>
+      <input type="file" id="profile-pic-input" accept="image/*" class="d-none" />
+    </div>
+  </div>
+
+  <div class="mx-auto" style="max-width: 600px;">
+    <!-- profile view -->
+    <div id="profile-view">
+      <p><strong>Pronouns:</strong> <span id="display-pronouns">they/them</span></p>
+      <p><strong>Personal Quote:</strong> <span id="display-quote">“blah blah”</span></p>
+      <p><strong>Spotify:</strong> <span class="text-muted">(not connected)</span></p>
+
+      <div class="mt-4 d-flex justify-content-between">
+        <button class="btn btn-outline-primary w-50 me-2" id="edit-btn">edit profile</button>
+        <button class="btn btn-primary w-50 ms-2">log out</button>
+      </div>
+    </div>
+
+    <!-- editing mode -->
+    <form id="profile-edit" class="d-none">
+      <div class="mb-3">
+        <label for="nickname" class="form-label text-pink fw-semibold">Nickname</label>
+        <input type="text" class="form-control" id="nickname" value="..." />
+      </div>
+      <div class="mb-3">
+        <label for="pronouns" class="form-label text-pink fw-semibold">Pronouns</label>
+        <input type="text" class="form-control" id="pronouns" value="..." />
+      </div>
+      <div class="mb-3">
+        <label for="quote" class="form-label text-pink fw-semibold">Personal Quote</label>
+        <textarea class="form-control" id="quote" rows="2">...</textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold text-pink d-block">Spotify</label>
+        <button type="button" class="btn btn-prompt">Connect Spotify</button>
+      </div>
+
+      <div class="text-center mt-5">
+        <label class="form-label fw-semibold text-pink me-2">theme:</label>
+        <select id="theme-select" class="form-select d-inline-block" style="width: 200px;">
+          <option value="pink" selected>pink</option>
+          <option value="lavender">lavender</option>
+          <option value="blue">blue</option>
+        </select>
+      </div>
+
+      <div class="d-flex justify-content-between mt-3">
+        <button type="button" class="btn btn-outline-secondary w-50 me-2" id="cancel-edit">cancel</button>
+        <button type="button" class="btn btn-prompt w-50 ms-2" id="save-edit">save changes</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<!-- modal -->
+<div class="modal fade" id="saveModal" tabindex="-1" aria-labelledby="saveModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-pink">
+      <div class="modal-header">
+        <h5 class="modal-title text-pink" id="saveModalLabel">save changes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="mb-3">Your changes haven’t been saved yet.</p>
+        <p class="fw-semibold text-pink">Would you like to save your updates?</p>
+      </div>
+      <div class="modal-footer d-flex justify-content-center">
+        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">cancel</button>
+        <button type="button" class="btn btn-prompt" data-bs-dismiss="modal">save changes</button>
+      </div>
+    </div>
+  </div>
+</div>

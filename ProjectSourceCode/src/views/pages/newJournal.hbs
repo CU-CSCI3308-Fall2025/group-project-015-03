@@ -1,0 +1,17 @@
+<main class="container mt-4">
+  <h4 class="mb-3 text-center">Add a New Journal Entry</h4>
+
+  <form action="/journal/new" method="POST" class="p-3 border rounded shadow-sm">
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" id="title" name="title" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="text" class="form-label">Your Entry</label>
+      <textarea id="text" name="text" class="form-control" rows="5" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Save Entry</button>
+  </form>
+</main>

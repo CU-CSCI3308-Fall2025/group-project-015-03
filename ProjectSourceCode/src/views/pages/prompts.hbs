@@ -1,0 +1,18 @@
+<main class="container text-center mt-5 prompt-page">
+  <h1 class="mb-2">Pick your prompt for today</h1>
+  <p id="date" class="text-muted mb-4">Loading date...</p>
+
+  <div class="row g-4 justify-content-center">
+    {{#each prompts}}
+      <div class="col-md-3">
+        <div class="card prompt-card p-3">
+          <h5 class="card-title">{{this.title}}</h5>
+          <p class="card-text">{{this.text}}</p>
+          <a href="/feed" class="btn btn-prompt w-100">Answer</a>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</main>
+
+<script src="/js/main.js"></script>

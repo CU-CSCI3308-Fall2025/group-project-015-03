@@ -1,0 +1,48 @@
+maggie's notes from the week:
+
+wednesday october 29
+- first i added a dockerfile and updated some of the index.js file to make sure that the app could be run locally on localhost with docker containers
+- i also updated the node_modules folder so it had the appropriately running packages and dependencies 
+- i also updated the file directories to make sure that the main.js file and the style.css files are being reached appropriately
+
+thursday october 30
+- login & random prompt logic as placeholders
+- the buttons still don’t work
+- when backend wants to enforce “must answer before viewing feed”, they can redirect or render server-side
+- the prompts page is still prompts.html (keeps index.html as login page)
+- later the prompts page will be the root after login, backend will route to prompts for authenticated users
+- made sure that bootstrap was being loaded correctly (before the css stylesheet)
+- changed the look of the prompts page to match our style
+- edited paths for stylesheets and js so its easier to front end test
+
+monday november 3
+- i didn’t do a whole lot this day, mainly just making the flow make more sense for other people to start integrating their parts (prompts db, handlebars, etc)
+- changing paths and stuff, making sure navbar is on appropriate pages
+- made a new html page for the journal with archive entries and eventually other entries 
+
+tuesday november 4
+- i created a redesigned profile layout
+- added profile image, username, nickname, pronouns, personal quote, and spotify connection placeholder.
+- included non-functional logout and edit buttons
+- i tried to write in a way to make it easy for future conversion to Handlebars templates
+- edit button reveals editable input fields for nickname, pronouns, and quote.
+- save updates visible text dynamically (client-side only) and cancel returns to view mode without saving changes
+- no backend connection yet
+- added theme selector feature
+- allows users to switch between pink, lavender, and blue
+- this persists across switching pages. this is the only “edit profile” feature that saves when switching between the various html pages
+- i also incorporated a modal placeholder for unsaved changes
+- modal is currently inactive, intended for future functionality when backend save logic is added.
+
+backend stuff still todo:
+- connect “save changes” button to backend once the routes have been made
+- replace static profile data with dynamic user information, make sure it is persisted and doesn’t ruin any of the UI
+- hook up spotify API integration once authentication is implemented
+- much later task, but still relevant to the profile page
+
+
+- jackson is going to work on fixing the handlebars and integrating the login
+- summer is going to connect databases, prompts pages, and integrating 
+- maya is going to work on the journal page and create a logo to be used throughout the page
+- logo as the website logo in the header partial 
+- maggie is going to work on adding more bulk and info to the pages in general (less just skeleton)

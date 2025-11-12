@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 INSERT INTO users(
     username,
     password,
@@ -12,6 +13,8 @@ INSERT INTO users(
     'keiko', 'purpledragon', 'it/its', 'k', 'im gonna be my own kind of hero'
 );
 
+=======
+>>>>>>> main
 INSERT INTO prompts(
     prompt_txt
 )
