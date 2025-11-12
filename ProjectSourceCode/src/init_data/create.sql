@@ -21,6 +21,17 @@ CREATE TABLE IF NOT EXISTS responses (
     FOREIGN KEY (username) REFERENCES users(username)  
 );
 
+DROP TABLE IF EXISTS journals CASCADE;
+CREATE TABLE IF NOT EXISTS journals (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(100),
+    content TEXT,
+    username VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+
+
 DROP TABLE IF EXISTS responses_to_users CASCADE;
 CREATE TABLE IF NOT EXISTS responses_to_users (
     username VARCHAR(20) NOT NULL,
