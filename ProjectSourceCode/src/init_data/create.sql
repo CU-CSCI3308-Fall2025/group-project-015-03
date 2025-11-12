@@ -1,18 +1,10 @@
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(20) PRIMARY KEY,
-<<<<<<< HEAD
     password VARCHAR(30) NOT NULL,
     pronouns VARCHAR(10),
     nickname VARCHAR(20),
-    quote VARCHAR(50),
-
-=======
-    password VARCHAR(100) NOT NULL,
-    pronouns VARCHAR(10),
-    nickname VARCHAR(20),
     quote VARCHAR(50)
->>>>>>> main
 );
 
 DROP TABLE IF EXISTS prompts CASCADE;
@@ -35,8 +27,4 @@ CREATE TABLE IF NOT EXISTS responses_to_users (
     response_id INT NOT NULL,
     FOREIGN KEY (username) REFERENCES users(username),
     FOREIGN KEY (response_id) REFERENCES responses(response_id)
-<<<<<<< HEAD
 );
-=======
-);
->>>>>>> main

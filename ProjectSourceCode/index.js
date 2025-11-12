@@ -181,13 +181,27 @@ app.get('/friends', requireLogin, (req, res) => {
   });
 });
 
-app.get('/prompts', requireLogin, (req, res) => {
-  const prompts = [
-    { title: 'Prompt One', text: 'What made you smile today?' },
-    { title: 'Prompt Two', text: 'What’s something you learned recently?' },
-    { title: 'Prompt Three', text: 'Describe a small win you had today.' }
-  ];
-
+app.get('/prompts', requireLogin, async (req, res) => {
+  const date = new Date();
+  const day = date.getDate();
+  const start_index = (day % 7) * 3;
+  const end_index = start_index + 2;
+  const query = 'SELECT prompt_txt FROM prompts WHERE prompt_id >= $1 AND prompt_id <= $2;';
+  let prompts = [];
+  try {
+    let results = await db.any(query, [start_index, end_index]);
+    prompts = results;
+    for (let i = 0; i < 3; i++) {
+      prompts[i].title = i;
+      prompts[i].text = results[i].prompt_txt; 
+    }
+  }
+  catch (err) {
+    console.error(err),
+    res.status(400).json({
+      error: err,
+    });
+  }
   res.render('pages/prompts', {
     layout: 'secondary',
     title: 'Daily Prompts',
