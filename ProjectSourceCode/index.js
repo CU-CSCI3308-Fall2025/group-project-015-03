@@ -83,7 +83,7 @@ app.post('/register', async (req, res) => {
   const { username , password } = req.body;
 
   try {
-    const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+    const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
 
     if (existingUser) {
       return res.status(400).send('Username already exists. Try a different one.');
@@ -91,7 +91,7 @@ app.post('/register', async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await db.none('INSERT INTO users (username, password) VALUES ($1, $2)', [username, hashedPassword]);
+    await db.none('INSERT INTO users (username, password) VALUES ($1, $2);', [username, hashedPassword]);
 
     console.log(`Registered new user: ${username}`);
     res.redirect('/login');
@@ -118,7 +118,7 @@ app.post('/login', async (req, res) => {
     }
 
     // otherwise, try real DB lookup
-    const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1', [username]);
+    const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
 
     if (!user) {
       return res.status(401).send('Invalid username or password');
