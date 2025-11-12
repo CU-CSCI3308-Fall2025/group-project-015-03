@@ -1,0 +1,37 @@
+
+index.js:
+    - restructured routes to use two handlebars layouts main.hbs (for pages with navigation) and secondary.hbs (for pages like login/register and prompts)
+    - added logic for the /prompts route, which now renders a list of daily prompts using prompts.hbs
+    - still just hard coded, not just random prompts
+    - implemented the sample data arrays for journal entries, prompts, and feed posts for testing without a database connection
+    - added a temporary admin bypass for frontend testing
+
+handlebars:
+    - finalized main.hbs and secondary.hbs layouts 
+    - main.hbs includes the header, nav, and footer partials
+    - secondary.hbs excludes the nav bar for login/register and prompts screens
+    - updated all html files (feed, profile, journal, newJournal, friends, prompts, index, and register) into .hbs templates.
+    - confirmed bootstrap and css load correctly across all pages w express
+    - fixed image and script paths to load static files properly from src/resources.
+
+frontend:
+    - page flow now routes correctly through /login to /prompts to /feed
+    - profile edit and theme-switching features work after handlebars conversion 
+
+remaining todos:
+    - create a users table in the Postgres container to allow actual register/login functionality
+    - connect “save changes” on the profile page to backend routes once user data persistence is ready
+    - integrate backend data flow for prompts and journal entries once database models are finalized
+
+goals:
+
+- summer updated the databases and is going to work on implenting it into the handlebars files
+- jackosn made test cases and finalized the login and register
+- maya is going to try to add more test cases
+- maggie is going to continue to add more features on the page and incorporate likes on the feed page
+- our goal is to get everything working this week in connection with databases in order to finalize the web page
+- we also need to think about prompts and responses table
+- we want to connect the profile side into other features
+- jackson is going to work on finalizing the login and register features as well
+
+

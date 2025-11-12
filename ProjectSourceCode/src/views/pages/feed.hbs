@@ -1,24 +1,22 @@
 {{!-- comment --}}
 <main class="container mt-4">
-    <h2 class="mb-3">Today’s Reflections</h2>
+  <h2 class="mb-3">Today’s Reflections</h2>
 
+  {{!-- loop over entries passed from the server --}}
+  {{#each posts}}
     <div class="card mb-3">
       <div class="card-body">
-        <h5 class="card-title">Anonymous</h5>
-        <p class="card-text">“blah blah blah”</p>
+        <h5 class="card-title">{{this.username}}</h5>
+        <p class="card-text">“{{this.text}}”</p>
         <button class="btn btn-outline-primary btn-sm">❤️ Like</button>
       </div>
     </div>
+  {{/each}}
 
-    <div class="card mb-3">
-      <div class="card-body">
-        <h5 class="card-title">Anonymous</h5>
-        <p class="card-text">“blah blah blah”</p>
-        <button class="btn btn-outline-primary btn-sm">❤️ Like</button>
-      </div>
-    </div>
+  {{!-- if there are no posts --}}
+  {{#unless posts}}
+    <p class="text-muted">No reflections yet — be the first to post!</p>
+  {{/unless}}
 </main>
-<!-- localhost testing -->
+
 <script src="/js/main.js"></script>
-<!-- frontend testing -->
-<!-- <script src="../resources/js/main.js"></script> -->

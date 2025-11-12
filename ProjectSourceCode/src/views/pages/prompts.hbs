@@ -1,38 +1,18 @@
-<body class="prompt-page">
-    <main class="container text-center mt-5">
-        <h1 class="mb-2">Pick your prompt for today</h1>
-        <p id="date" class="text-muted mb-4">Loading date...</p>
+<main class="container text-center mt-5 prompt-page">
+  <h1 class="mb-2">Pick your prompt for today</h1>
+  <p id="date" class="text-muted mb-4">Loading date...</p>
 
-        <div class="row g-4 justify-content-center">
-            <div class="col-md-3">
-                <div class="card prompt-card p-3">
-                    <h5 class="card-title">one</h5>
-                    <p class="card-text">prompt one</p>
-                    <a href="feed.html" class="btn btn-prompt w-100">Answer</a>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card prompt-card p-3">
-                    <h5 class="card-title">two</h5>
-                    <p class="card-text">prompt two</p>
-                    <a href="feed.html" class="btn btn-prompt w-100">Answer</a>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="card prompt-card p-3">
-                    <h5 class="card-title">three</h5>
-                    <p class="card-text">prompt three</p>
-                    <a href="feed.html" class="btn btn-prompt w-100">Answer</a>
-                </div>
-            </div>
+  <div class="row g-4 justify-content-center">
+    {{#each prompts}}
+      <div class="col-md-3">
+        <div class="card prompt-card p-3">
+          <h5 class="card-title">{{this.title}}</h5>
+          <p class="card-text">{{this.text}}</p>
+          <a href="/prompts/answer?prompt_id={{this.id}}" class="btn btn-prompt w-100">Answer</a>
         </div>
+      </div>
+    {{/each}}
+  </div>
+</main>
 
-    </main>
-
-    <!-- localhost testing -->
-    <script src="/js/main.js"></script>
-    <!-- frontend testing -->
-    <!-- <script src="../resources/js/main.js"></script> -->
-</body>
+<script src="/js/main.js"></script>
