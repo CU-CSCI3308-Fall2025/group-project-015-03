@@ -57,7 +57,7 @@ app.use(session({
 function requireLogin(req, res, next) {
   // temporary bypass for frontend testing
   if (!req.session.user) {
-    req.session.user = { username: 'admin' };
+    return res.redirect('/login');
   }
   next();
 }
@@ -152,6 +152,14 @@ app.get('/logout', (req, res) => {
 app.get('/home', requireLogin, (req, res) => {
   res.render('pages/feed', { title: 'Home' , username: req.session.user.username});
 });
+
+// TEMPORARY fake login for testing
+// app.get('/fake-login', (req, res) => {
+//   req.session = req.session || {};
+//   req.session.user = { username: 'maya' }; // pretend this user is logged in
+//   console.log('✅ fake login activated for', req.session.user.username);
+//   res.redirect('/feed'); // or '/journal' or '/home'
+// });
 
 app.get('/profile', requireLogin, (req, res) => {
   res.render('pages/profile', { layout: 'main' , title: 'Profile' , username: req.session.user.username});
@@ -253,29 +261,42 @@ let entries = [
   { title: 'Second Entry', text: 'Feeling productive and creative.'}
 ];
 
-//Journal list page
-app.get('/journal', requireLogin, (req, res) => {
-  res.render('pages/journal', {
-    layout: 'main',
-    entries, 
-    title: 'My Journal',
-    username: req.session.user.username
-  });
-});
-
-// Add new entry form
-app.get('/journal/new', (req,res) => {
-  res.render('pages/newJournal', {layout: 'main'});
-});
-
-// temporary backend so the page doesnt crash when you save new journal entry
-app.post('/journal/new', (req, res) => {
-  const { title, text } = req.body;
-  if (title && text) {
-    entries.push({ title, text }); // temporarily store in memory
+app.get('/journal', async (req, res) => {
+  try {
+    const entries = await db.any('SELECT * FROM journals ORDER BY created_at DESC');
+    res.render('pages/journal', {
+      layout: 'main',
+      title: 'My Journal Entries',
+      entries
+    });
+  } catch (err) {
+    console.error('Error loading journal entries:', err);
+    res.status(500).send('Database read error');
   }
-  res.redirect('/journal');
 });
+
+app.get('/journal/new', (req, res) => {
+  res.render('pages/newJournal', { layout: 'main' });
+});
+
+
+app.post('/journal/new', async (req, res) => {
+  const { title, text } = req.body;
+  const username = req.session?.user?.username;
+
+  try {
+    await db.none(
+        'INSERT INTO journals (title, content, username) VALUES ($1, $2, $3)',
+        [title, text, username]
+    );
+    console.log('✅ Journal entry saved:', title);
+    res.redirect('/journal');
+  } catch (err) {
+    console.error(' Error inserting journal entry:', err);
+    res.status(500).send('Database insert error');
+  }
+});
+
 
 
 const PORT = process.env.PORT || 3000;
