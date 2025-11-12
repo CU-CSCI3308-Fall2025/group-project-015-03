@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(20) PRIMARY KEY,
-    password VARCHAR(100) NOT NULL,
+    password VARCHAR(30) NOT NULL,
     pronouns VARCHAR(10),
     nickname VARCHAR(20),
     quote VARCHAR(50)

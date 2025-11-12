@@ -181,19 +181,69 @@ app.get('/friends', requireLogin, (req, res) => {
   });
 });
 
-app.get('/prompts', requireLogin, (req, res) => {
-  const prompts = [
-    { title: 'Prompt One', text: 'What made you smile today?' },
-    { title: 'Prompt Two', text: 'What’s something you learned recently?' },
-    { title: 'Prompt Three', text: 'Describe a small win you had today.' }
-  ];
-
+app.get('/prompts', requireLogin, async (req, res) => {
+  const date = new Date();
+  const day = date.getDate();
+  const start_index = (day % 7) * 3;
+  const end_index = start_index + 2;
+  const query = 'SELECT * FROM prompts WHERE prompt_id >= $1 AND prompt_id <= $2;';
+  let prompts = [];
+  try {
+    let results = await db.any(query, [start_index, end_index]);
+    prompts = results;
+    for (let i = 0; i < 3; i++) {
+      prompts[i].title = i;
+      prompts[i].text = results[i].prompt_txt; 
+      prompts[i].id = results[i].prompt_id;
+    }
+  }
+  catch (err) {
+    console.error(err),
+    res.status(400).json({
+      error: err,
+    });
+  }
   res.render('pages/prompts', {
     layout: 'secondary',
     title: 'Daily Prompts',
     username: req.session.user.username,
     prompts
   });
+});
+
+// Add new entry form
+app.get('/prompts/answer', async(req,res) => {
+  const prompt_id = req.query.prompt_id;
+  const query = 'SELECT * FROM prompts WHERE prompt_id = $1;';
+  try {
+    const prompt = await db.one(query, [prompt_id]);
+    res.render('pages/newResponse', {
+      layout: 'main',
+      username: req.session.user.username,
+      prompt
+    });
+  }
+  catch (err) {
+    console.error(err),
+    res.status(400).json({
+      error: err,
+    });
+  }
+});
+
+app.post('/prompts/answer', async (req, res) => {
+  const {text, prompt_id, username} = req.body;
+  const query = 'INSERT INTO responses(response_txt, username) VALUES ($1, $2);';
+  try {
+    await db.none(query, [text, username]);
+    res.render('pages/feed');
+  }
+  catch (err) {
+    console.error(err),
+    res.status(400).json({
+      error: err,
+    });
+  }
 });
 
 
