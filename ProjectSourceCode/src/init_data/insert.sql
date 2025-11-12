@@ -6,6 +6,9 @@ INSERT INTO users(
     quote
 ) VALUES 
 (
+    'admin', 'admin', 'admin', 'admin', 'admin quote'
+),
+(
     'marcylake', 'tumblestackadmin', 'she/her', 'marbles', 'please let me have this dream'
 ),
 (

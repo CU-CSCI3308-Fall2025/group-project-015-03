@@ -8,7 +8,7 @@
         <div class="card prompt-card p-3">
           <h5 class="card-title">{{this.title}}</h5>
           <p class="card-text">{{this.text}}</p>
-          <a href="/feed" class="btn btn-prompt w-100">Answer</a>
+          <a href="/prompts/answer?prompt_id={{this.id}}" class="btn btn-prompt w-100">Answer</a>
         </div>
       </div>
     {{/each}}

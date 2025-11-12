@@ -186,7 +186,7 @@ app.get('/prompts', requireLogin, async (req, res) => {
   const day = date.getDate();
   const start_index = (day % 7) * 3;
   const end_index = start_index + 2;
-  const query = 'SELECT prompt_txt FROM prompts WHERE prompt_id >= $1 AND prompt_id <= $2;';
+  const query = 'SELECT * FROM prompts WHERE prompt_id >= $1 AND prompt_id <= $2;';
   let prompts = [];
   try {
     let results = await db.any(query, [start_index, end_index]);
@@ -194,6 +194,7 @@ app.get('/prompts', requireLogin, async (req, res) => {
     for (let i = 0; i < 3; i++) {
       prompts[i].title = i;
       prompts[i].text = results[i].prompt_txt; 
+      prompts[i].id = results[i].prompt_id;
     }
   }
   catch (err) {
@@ -208,6 +209,41 @@ app.get('/prompts', requireLogin, async (req, res) => {
     username: req.session.user.username,
     prompts
   });
+});
+
+// Add new entry form
+app.get('/prompts/answer', async(req,res) => {
+  const prompt_id = req.query.prompt_id;
+  const query = 'SELECT * FROM prompts WHERE prompt_id = $1;';
+  try {
+    const prompt = await db.one(query, [prompt_id]);
+    res.render('pages/newResponse', {
+      layout: 'main',
+      username: req.session.user.username,
+      prompt
+    });
+  }
+  catch (err) {
+    console.error(err),
+    res.status(400).json({
+      error: err,
+    });
+  }
+});
+
+app.post('/prompts/answer', async (req, res) => {
+  const {text, prompt_id, username} = req.body;
+  const query = 'INSERT INTO responses(response_txt, username) VALUES ($1, $2);';
+  try {
+    await db.none(query, [text, username]);
+    res.render('pages/feed');
+  }
+  catch (err) {
+    console.error(err),
+    res.status(400).json({
+      error: err,
+    });
+  }
 });
 
 

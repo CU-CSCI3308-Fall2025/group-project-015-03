@@ -1,0 +1,18 @@
+<main class="container mt-4">
+  <h4 class="mb-3 text-center">Add a New Journal Entry</h4>
+
+  <form action="/prompts/answer" method="POST" class="p-3 border rounded shadow-sm">
+    <div class="mb-3">
+      <p>{{prompt.prompt_txt}}</p>
+    </div>
+
+    <div class="mb-3">
+      <label for="text" class="form-label">Your Entry</label>
+      <textarea id="text" name="text" class="form-control" rows="5" required></textarea>
+    </div>
+    <input type="hidden" name="prompt_id" value="{{prompt.prompt_id}}">
+    <input type="hidden" name="username" value="{{username}}">
+
+    <button type="submit" class="btn btn-success w-100">Save Entry</button>
+  </form>
+</main>
