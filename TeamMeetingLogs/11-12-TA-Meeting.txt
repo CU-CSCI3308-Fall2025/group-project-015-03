@@ -1,0 +1,4 @@
+- want to focus on high-end goals to set ourselves apart from other groups
+- we have our spotify pairing as an idea, but we want to get the functionality of everything else working first
+- for this next week we want to make sure all of the things we have implemented this past week are working properly before we move forward
+- we want to focus on the journal entries, individual accounts, and views of the pages, then we can move to aspects like friends features
