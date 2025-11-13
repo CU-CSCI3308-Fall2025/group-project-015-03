@@ -148,4 +148,261 @@ document.addEventListener("DOMContentLoaded", () => {
     pendingTheme = themeSelect.value;
     document.body.dataset.theme = pendingTheme; // live preview the new theme
   });
+  
+});
+
+// === FEED INTERACTIVITY ===
+document.addEventListener("DOMContentLoaded", () => {
+  const username = "admin"; // replace with backend session username later
+
+  // === LIKE SYSTEM ===
+  let likesData = JSON.parse(sessionStorage.getItem("likesData") || "{}");
+
+  document.querySelectorAll(".like-btn").forEach((btn) => {
+    const postId = btn.closest(".card").dataset.postId;
+    const likeCountEl = btn.nextElementSibling;
+
+    if (!likesData[postId]) likesData[postId] = { count: 0, likedBy: [] };
+    updateLikeDisplay(postId);
+
+    btn.addEventListener("click", () => {
+      const liked = likesData[postId].likedBy.includes(username);
+
+      if (liked) {
+        likesData[postId].likedBy = likesData[postId].likedBy.filter(u => u !== username);
+        likesData[postId].count--;
+      } else {
+        likesData[postId].likedBy.push(username);
+        likesData[postId].count++;
+      }
+
+      sessionStorage.setItem("likesData", JSON.stringify(likesData));
+      updateLikeDisplay(postId);
+    });
+
+    function updateLikeDisplay(postId) {
+      const data = likesData[postId];
+      const liked = data.likedBy.includes(username);
+      btn.classList.toggle("btn-prompt", liked);
+      btn.classList.toggle("btn-outline-primary", !liked);
+      btn.querySelector(".like-text").textContent = liked ? "Liked" : "Like";
+      likeCountEl.textContent = `(${data.count})`;
+    }
+  });
+
+  // === COMMENT SYSTEM ===
+  const commentButtons = document.querySelectorAll(".comment-btn");
+  const commentText = document.getElementById("commentText");
+  const submitComment = document.getElementById("submitComment");
+  let currentPostId = null;
+
+  let commentsData = JSON.parse(sessionStorage.getItem("commentsData") || "{}");
+
+  commentButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentPostId = btn.closest(".card").dataset.postId;
+      commentText.value = "";
+    });
+  });
+
+  // === FEED FRIEND PRIORITY ===
+document.addEventListener("DOMContentLoaded", () => {
+  const feedContainer = document.querySelector("main.container");
+  if (!feedContainer) return; // only on feed page
+  const friends = JSON.parse(localStorage.getItem("friends")) || [];
+  const friendNames = friends.map(f => f.name);
+
+  const cards = Array.from(feedContainer.querySelectorAll(".card"));
+  const sorted = cards.sort((a, b) => {
+    const aName = a.querySelector(".card-title")?.textContent;
+    const bName = b.querySelector(".card-title")?.textContent;
+    const aIsFriend = friendNames.includes(aName);
+    const bIsFriend = friendNames.includes(bName);
+    return aIsFriend === bIsFriend ? 0 : aIsFriend ? -1 : 1;
+  });
+
+  sorted.forEach(c => feedContainer.appendChild(c));
+});
+
+
+  submitComment.addEventListener("click", () => {
+    const text = commentText.value.trim();
+    if (!text) return;
+
+    const newComment = {
+      username,
+      text,
+      timestamp: new Date().toLocaleString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+    };
+
+    if (!commentsData[currentPostId]) commentsData[currentPostId] = [];
+    commentsData[currentPostId].push(newComment);
+    sessionStorage.setItem("commentsData", JSON.stringify(commentsData));
+
+    renderComments(currentPostId);
+    bootstrap.Modal.getInstance(document.getElementById("commentModal")).hide();
+  });
+
+  Object.keys(commentsData).forEach(renderComments);
+
+  function renderComments(postId) {
+    const postCard = document.querySelector(`.card[data-post-id="${postId}"]`);
+    if (!postCard) return;
+    const commentList = postCard.querySelector(".comment-list");
+    commentList.innerHTML = "";
+
+    commentsData[postId].forEach(c => {
+      const li = document.createElement("li");
+      li.classList.add("border", "rounded", "p-2", "mb-1", "bg-light");
+      li.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <strong>${c.username}</strong>
+          <small class="text-muted">${c.timestamp}</small>
+        </div>
+        <div>${c.text}</div>
+      `;
+      commentList.appendChild(li);
+    });
+  }
+});
+
+// === FRIENDS PAGE ===
+document.addEventListener("DOMContentLoaded", () => {
+  const friendsGrid = document.getElementById("friendsGrid");
+  const searchInput = document.getElementById("friendSearch");
+  const friendList = document.getElementById("friendList");
+  const modalName = document.getElementById("modalName");
+  const modalUsername = document.getElementById("modalUsername");
+  const modalQuote = document.getElementById("modalQuote");
+  const addFriendBtn = document.getElementById("addFriendBtn");
+  let selectedFriend = null;
+
+  const users = [
+    { name: "Alice", username: "alice123", quote: "Love journaling!" },
+    { name: "Bob", username: "bobbyb", quote: "Stay grateful." },
+    { name: "Carol", username: "carolyn", quote: "Each day is a new start." },
+    { name: "David", username: "davidx", quote: "Finding peace in small things." },
+    { name: "Ella", username: "ella_m", quote: "Music and reflection." }
+  ];
+
+  let friends = JSON.parse(localStorage.getItem("friends")) || [];
+
+  function renderPotentialFriends(list = []) {
+    friendsGrid.innerHTML = "";
+    if (list.length === 0) {
+      friendsGrid.innerHTML = `<p class="text-muted">No users found.</p>`;
+      return;
+    }
+    list.forEach(u => {
+      const col = document.createElement("div");
+      col.classList.add("col-md-4", "friend-card");
+      col.dataset.username = u.username;
+      col.dataset.name = u.name;
+      col.dataset.quote = u.quote;
+
+      col.innerHTML = `
+        <div class="card p-3 text-center">
+          <img src="/images/profile-placeholder.png" class="rounded-circle mx-auto mb-3" width="80" />
+          <h5>${u.name}</h5>
+          <button class="btn btn-outline-primary btn-sm mt-2 view-btn" data-bs-toggle="modal" data-bs-target="#friendModal">View</button>
+        </div>
+      `;
+      friendsGrid.appendChild(col);
+    });
+
+    attachViewEvents();
+  }
+
+  function attachViewEvents() {
+    document.querySelectorAll(".view-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const card = e.target.closest(".friend-card");
+        selectedFriend = {
+          name: card.dataset.name,
+          username: card.dataset.username,
+          quote: card.dataset.quote,
+        };
+        modalName.textContent = selectedFriend.name;
+        modalUsername.textContent = selectedFriend.username;
+        modalQuote.textContent = `"${selectedFriend.quote}"`;
+        const isFriend = friends.some(f => f.username === selectedFriend.username);
+        addFriendBtn.textContent = isFriend ? "Added ✓" : "Add Friend";
+        addFriendBtn.disabled = isFriend;
+      });
+    });
+  }
+
+  addFriendBtn?.addEventListener("click", () => {
+    if (!selectedFriend) return;
+    if (!friends.some(f => f.username === selectedFriend.username)) {
+      friends.push(selectedFriend);
+      localStorage.setItem("friends", JSON.stringify(friends));
+      updateFriendList();
+      addFriendBtn.textContent = "Added ✓";
+      addFriendBtn.disabled = true;
+      friendsGrid.innerHTML = `<p class="text-muted">Friend added!</p>`;
+    }
+  });
+
+  searchInput?.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase().trim();
+    if (term === "") {
+      friendsGrid.innerHTML = `<p class="text-muted">Start typing to search for friends...</p>`;
+      return;
+    }
+    const filtered = users.filter(u => u.name.toLowerCase().includes(term) || u.username.toLowerCase().includes(term));
+    renderPotentialFriends(filtered);
+  });
+
+  function updateFriendList() {
+    friendList.innerHTML = "";
+    if (friends.length === 0) {
+      friendList.innerHTML = `<li class="list-group-item text-muted">No friends yet.</li>`;
+      return;
+    }
+    friends.forEach(f => {
+      const li = document.createElement("li");
+      li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+      li.innerHTML = `
+        <span><strong>${f.name}</strong> <small class="text-muted">@${f.username}</small></span>
+        <button class="btn btn-sm btn-outline-danger remove-friend">Remove</button>
+      `;
+      li.querySelector(".remove-friend").addEventListener("click", () => {
+        friends = friends.filter(x => x.username !== f.username);
+        localStorage.setItem("friends", JSON.stringify(friends));
+        updateFriendList();
+      });
+      friendList.appendChild(li);
+    });
+  }
+
+  updateFriendList();
+  window.getFriendsList = () => friends;
+});
+
+// === FEED FRIEND BADGES + SORTING ===
+document.addEventListener("DOMContentLoaded", () => {
+  const feedContainer = document.querySelector("main.container");
+  if (!feedContainer) return;
+  const friends = JSON.parse(localStorage.getItem("friends")) || [];
+  const friendNames = friends.map(f => f.name);
+
+  const cards = Array.from(feedContainer.querySelectorAll(".card"));
+  cards.forEach(card => {
+    const username = card.dataset.username;
+    if (friendNames.includes(username)) {
+      card.querySelector(".friend-badge").classList.remove("d-none");
+    }
+  });
+
+  // move friend posts to top
+  const sorted = cards.sort((a, b) => {
+    const aName = a.dataset.username;
+    const bName = b.dataset.username;
+    const aIsFriend = friendNames.includes(aName);
+    const bIsFriend = friendNames.includes(bName);
+    return aIsFriend === bIsFriend ? 0 : aIsFriend ? -1 : 1;
+  });
+
+  sorted.forEach(c => feedContainer.appendChild(c));
 });

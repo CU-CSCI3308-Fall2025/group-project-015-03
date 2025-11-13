@@ -1,22 +1,45 @@
-{{!-- comment --}}
 <main class="container mt-4">
   <h2 class="mb-3">Today’s Reflections</h2>
 
-  {{!-- loop over entries passed from the server --}}
   {{#each posts}}
-    <div class="card mb-3">
+    <div class="card mb-3" data-username="{{this.username}}">
       <div class="card-body">
-        <h5 class="card-title">{{this.username}}</h5>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="card-title">{{this.username}}</h5>
+          <span class="friend-badge badge bg-success d-none">Friend</span>
+        </div>
         <p class="card-text">“{{this.text}}”</p>
-        <button class="btn btn-outline-primary btn-sm">❤️ Like</button>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-primary btn-sm like-btn"><span class="like-text">Like</span></button>
+          <span class="like-count">(0)</span>
+          <button class="btn btn-outline-secondary btn-sm comment-btn" data-bs-toggle="modal" data-bs-target="#commentModal">💬 Comment</button>
+        </div>
+        <ul class="comment-list list-unstyled mt-3"></ul>
       </div>
     </div>
   {{/each}}
 
-  {{!-- if there are no posts --}}
   {{#unless posts}}
     <p class="text-muted">No reflections yet — be the first to post!</p>
   {{/unless}}
 </main>
+
+<!-- comment modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="commentText" class="form-control" rows="3" placeholder="Write your comment..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="submitComment" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="/js/main.js"></script>

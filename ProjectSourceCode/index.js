@@ -167,17 +167,20 @@ app.get('/profile', requireLogin, (req, res) => {
 
 app.get('/feed', requireLogin, (req, res) => {
   const samplePosts = [
-    { username: 'Anonymous', text: 'Feeling peaceful today.' },
-    { username: 'Anonymous', text: 'Grateful for small moments.' }
+    { username: 'Alice', text: 'Feeling peaceful today.' },
+    { username: 'Bob', text: 'Grateful for small moments.' },
+    { username: 'Anonymous', text: 'Trying to stay motivated.' },
+    { username: 'Anonymous', text: 'Today I took a long walk and it helped me think.' }
   ];
 
   res.render('pages/feed', { 
     layout: 'main', 
     title: 'Feed', 
     username: req.session.user.username,
-    posts: samplePosts // pass sample data to feed.hbs
+    posts: samplePosts
   });
 });
+
 
 
 

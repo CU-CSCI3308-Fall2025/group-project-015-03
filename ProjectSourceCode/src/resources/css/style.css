@@ -71,4 +71,45 @@ body[data-theme="pink"] { background-color: #fff0f6; }
 body[data-theme="lavender"] { background-color: #f5f0ff; }
 body[data-theme="blue"] { background-color: #e8f1ff; }
 
+.btn-primary.liked, .btn.btn-primary {
+  background-color: #ff66b3; /* pink highlight */
+  border-color: #ff66b3;
+}
 
+.like-btn {
+  transition: all 0.2s ease;
+}
+
+.like-btn.btn-primary {
+  background-color: #ff66b3;
+  border-color: #ff66b3;
+  color: white;
+}
+
+.like-btn:hover {
+  transform: scale(1.05);
+}
+
+.like-count {
+  min-width: 24px;
+}
+
+
+
+.comment-list li {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.comment-list strong {
+  color: var(--bs-primary);
+  font-size: 0.9rem;
+}
+
+.comment-list small {
+  font-size: 0.75rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
