@@ -31,6 +31,21 @@ CREATE TABLE IF NOT EXISTS journals (
     FOREIGN KEY (username) REFERENCES users(username)
 );
 
+DROP TABLE IF EXISTS friends CASCADE;
+CREATE TABLE IF NOT EXISTS friends (
+    friend_one VARCHAR(20),
+    friend_two VARCHAR(20),
+    FOREIGN KEY (friend_one) REFERENCES users(username),
+    FOREIGN KEY (friend_two) REFERENCES users(username)
+);
+
+DROP TABLE IF EXISTS pending_friend_requests CASCADE;
+CREATE TABLE IF NOT EXISTS pending_friend_requests (
+   sender VARCHAR(20),
+   receiver VARCHAR(20),
+   FOREIGN KEY (sender) REFERENCES users(username),
+   FOREIGN KEY (receiver) REFERENCES users(username)
+);
 
 DROP TABLE IF EXISTS responses_to_users CASCADE;
 CREATE TABLE IF NOT EXISTS responses_to_users (
