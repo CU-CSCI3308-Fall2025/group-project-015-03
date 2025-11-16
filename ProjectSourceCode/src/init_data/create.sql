@@ -1,10 +1,11 @@
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(20) PRIMARY KEY,
-    password VARCHAR(30) NOT NULL,
+    password VARCHAR(100) NOT NULL,
     pronouns VARCHAR(10),
     nickname VARCHAR(20),
-    quote VARCHAR(50)
+    quote VARCHAR(50),
+    pfp_link VARCHAR(50)
 );
 
 DROP TABLE IF EXISTS prompts CASCADE;
@@ -33,10 +34,10 @@ CREATE TABLE IF NOT EXISTS journals (
 
 DROP TABLE IF EXISTS friends CASCADE;
 CREATE TABLE IF NOT EXISTS friends (
-    friend_one VARCHAR(20),
-    friend_two VARCHAR(20),
-    FOREIGN KEY (friend_one) REFERENCES users(username),
-    FOREIGN KEY (friend_two) REFERENCES users(username)
+    username VARCHAR(20),
+    friend VARCHAR(20),
+    FOREIGN KEY (username) REFERENCES users(username),
+    FOREIGN KEY (friend) REFERENCES users(username)
 );
 
 DROP TABLE IF EXISTS pending_friend_requests CASCADE;
