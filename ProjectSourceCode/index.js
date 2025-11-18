@@ -550,10 +550,11 @@ app.post('/profile/picture', requireLogin, upload.single('pfp'), async (req, res
 });
 
 app.get('/friends', requireLogin, async (req, res) => {
+  const currentUser = req.session.user.username;
   const query = 'SELECT friend FROM friends WHERE username = $1;';
   let results;
   try {
-    results = await db.any(query, [req.session.user.username]);
+    results = await db.any(query, [currentUser]);
     res.render('pages/friends', {
       layout: 'main',
       title: 'Friends',
@@ -561,7 +562,22 @@ app.get('/friends', requireLogin, async (req, res) => {
       results: results
     });
   }
-  catch {
+  catch (err) {
+      console.error(err),
+      res.status(400).json({
+      error: err,
+    });
+  }
+});
+
+app.get('/friends/list', requireLogin, async (req, res) => {
+  const currentUser = req.session.user.username;
+  const query = 'SELECT username FROM users WHERE username = $1;';
+  try {
+    const results = await db.any(query, [currentUser]);
+    res.json(results);
+  }
+  catch (err) {
       console.error(err),
       res.status(400).json({
       error: err,
@@ -816,13 +832,50 @@ app.get('/friends', requireLogin, (req, res) => {
 });
 
 app.get('/friends/search', requireLogin, async (req, res) => {
+  const currentUser = req.session.user.username;
   const search = req.query.q || "";
-  const query = 'SELECT username, quote FROM users WHERE username ILIKE $1;';
+  const query = 'SELECT username, quote FROM users WHERE username ILIKE $1 AND username != $2' 
+    + 'AND username NOT IN (SELECT friend FROM friends WHERE username = $2);';
   try {
-    let results = await db.any(query, [`%${search}%`]);
+    let results = await db.any(query, [`%${search}%`, currentUser]);
     res.json(results);
   }
-  catch {
+  catch (err) {
+      console.error(err),
+      res.status(400).json({
+      error: err,
+    });
+  }
+});
+
+app.post("/friends/add", requireLogin, async (req, res) => {
+  const username = req.session.user.username;
+  const friendToRequest = req.body.friend.username;
+
+  const query = 'INSERT INTO pending_friend_requests(sender, reciever) values ($1, $2);';
+  try {
+    await db.none(query, [username, friendToRequest]);
+    res.json({success: true});
+  }
+  catch (err ){
+      console.error(err),
+      res.status(400).json({
+      error: err,
+    });
+  }
+});
+
+app.delete("/friends/remove:username", requireLogin, async (req, res) => {
+  const currentUser = req.session.user.username;
+  const friendToRemove = req.params.username;
+  const query = 'DELETE FROM friends WHERE username = $1 AND friend = $2;';
+  
+  try {
+    await db.none(query, [currentUser, friendToRemove]);
+    await db.none(query, [friendToRemove, currentUser]);
+    res.json({ success: true});
+  }
+  catch (err) {
       console.error(err),
       res.status(400).json({
       error: err,
