@@ -113,3 +113,58 @@ body[data-theme="blue"] { background-color: #e8f1ff; }
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* -------------------------- */
+/* Journal Page (isolated)    */
+/* -------------------------- */
+
+.journal-page .journal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.25rem;
+}
+
+.journal-page .journal-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.08);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.journal-page .journal-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.journal-page .journal-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.journal-page .journal-text {
+  opacity: 0.85;
+  line-height: 1.45;
+}
+
+/* Add New Entry Card */
+.journal-page .add-new-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: 2px dashed rgba(0,0,0,0.2);
+}
+
+.journal-page .add-new-card:hover {
+  border-color: rgba(0,0,0,0.35);
+}
+
+.journal-page .add-new-inner {
+  font-size: 1.1rem;
+  font-weight: 600;
+  opacity: 0.8;
+}

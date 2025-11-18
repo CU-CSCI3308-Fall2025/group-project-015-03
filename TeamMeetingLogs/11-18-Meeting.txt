@@ -1,0 +1,18 @@
+- summer has been working on the friends stuff
+    - can befriend a user
+    - add friends, populates friend request
+    - we should still make something to show the friend requests on the profile page
+- jackson was working on the logout stuff
+- maggie has been working on the different sections of the journal page, but it's not working yet
+- jackson is going to work on feed page
+    - only show people if youve friended them
+    - also make it so when you click on the prompt in the feed it pull up the ability to comment
+    - friends at the top
+    - then ten most recent answers, refresh every once in a while
+    - use modal to view ppls profiles
+    - switch between viewing the prompts and answers to the three different prompts pages
+
+- this week summer is going to work on database persistence
+- maggie is going to keep working on the journal page and differentiating between the different journal entries
+- prompts page don't show up on the journal page, this is something we need to look at as well
+

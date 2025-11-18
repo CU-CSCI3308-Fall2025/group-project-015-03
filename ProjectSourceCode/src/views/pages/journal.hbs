@@ -1,27 +1,20 @@
-<main class="container mt-4">
-  <h4 class="mb-4 text-center">My Journal Entries</h4>
+<div class="journal-page container mt-4">
 
-  <div class="row g-3">
+  <h4 class="mb-4 text-center fw-bold">My Journal Entries</h4>
+
+  <div class="journal-grid">
     {{#each entries}}
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title">{{this.title}}</h5>
-            <p class="card-text">{{this.content}}</p>
-          </div>
-        </div>
+      <div class="journal-card">
+        <h5 class="journal-title">{{this.title}}</h5>
+        <p class="journal-text">{{this.content}}</p>
       </div>
     {{/each}}
 
-    <!-- "Add New" Card -->
-    <div class="col-md-6">
-      <div class="card text-center border-primary shadow-sm">
-        <div class="card-body">
-          <a href="/journal/new" class="btn btn-primary btn-lg w-100">+ Add New Entry</a>
-        </div>
-      </div>
-    </div>
+    <!-- Add New Card -->
+    <a href="/journal/new" class="journal-card add-new-card">
+      <div class="add-new-inner">+ Add New Entry</div>
+    </a>
   </div>
 
   <script src="/js/main.js"></script>
-</main>
+</div>

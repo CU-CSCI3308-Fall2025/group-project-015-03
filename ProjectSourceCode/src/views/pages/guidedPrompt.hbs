@@ -1,0 +1,46 @@
+<main class="container py-4">
+
+  <div class="card cute-card p-4 shadow-sm">
+
+    <h3 class="text-center mb-4">Guided Prompt</h3>
+
+    {{!-- Step 1: Select feeling --}}
+    {{#unless prompt}}
+      <form method="GET" action="/journal/guided">
+        <label class="form-label">How are you feeling?</label>
+        <select class="form-select mb-3" name="feeling">
+          <option value="stressed">Stressed</option>
+          <option value="anxious">Anxious</option>
+          <option value="happy">Happy</option>
+          <option value="sad">Sad</option>
+          <option value="overwhelmed">Overwhelmed</option>
+        </select>
+        <button class="btn btn-primary w-100">Generate Prompt</button>
+      </form>
+    {{/unless}}
+
+    {{!-- Step 2: Prompt is generated --}}
+    {{#if prompt}}
+      <div class="mb-4">
+        <h5>Your Prompt:</h5>
+        <p class="text-muted">{{prompt}}</p>
+      </div>
+
+      <form method="POST" action="/journal/guided">
+        <input type="hidden" name="guided_topic" value="{{feeling}}">
+        <input type="hidden" name="title" value="Guided Prompt — {{feeling}}">
+        <input type="hidden" name="prompt_txt" value="{{prompt}}">
+
+        <textarea 
+          class="form-control mb-3" 
+          name="content" 
+          rows="6" 
+          placeholder="Write your reflection here..."></textarea>
+
+        <button class="btn btn-success w-100">Save Entry</button>
+      </form>
+    {{/if}}
+
+  </div>
+
+</main>
