@@ -9,13 +9,17 @@
   </div>
 
   <div id="friendsGrid" class="row g-4 text-center text-muted">
-    <p>Start typing to search for friends...</p>
+    <p>Start typing to search for friends</p>
   </div>
 
   <!-- friend list -->
   <div class="mt-5">
     <h4>Your Friends</h4>
-    <ul id="friendList" class="list-group"></ul>
+    <ul id="friendList" class="list-group">
+      {{#each results}}
+        <li class = "list-group-item">{{this.friend}}</li>  
+      {{/each}}
+    </ul>
   </div>
 </main>
 

@@ -287,23 +287,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let friends = JSON.parse(localStorage.getItem("friends")) || [];
 
-  function renderPotentialFriends(list = []) {
+  function renderPotentialFriends(friends_list) {
     friendsGrid.innerHTML = "";
-    if (list.length === 0) {
+    if (friends_list.length === 0) {
       friendsGrid.innerHTML = `<p class="text-muted">No users found.</p>`;
       return;
     }
-    list.forEach(u => {
+    friends_list.forEach(u => {
       const col = document.createElement("div");
       col.classList.add("col-md-4", "friend-card");
       col.dataset.username = u.username;
-      col.dataset.name = u.name;
       col.dataset.quote = u.quote;
 
       col.innerHTML = `
         <div class="card p-3 text-center">
           <img src="/images/profile-placeholder.png" class="rounded-circle mx-auto mb-3" width="80" />
-          <h5>${u.name}</h5>
+          <h5>${u.username}</h5>
           <button class="btn btn-outline-primary btn-sm mt-2 view-btn" data-bs-toggle="modal" data-bs-target="#friendModal">View</button>
         </div>
       `;
@@ -344,14 +343,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  searchInput?.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase().trim();
-    if (term === "") {
-      friendsGrid.innerHTML = `<p class="text-muted">Start typing to search for friends...</p>`;
-      return;
-    }
-    const filtered = users.filter(u => u.name.toLowerCase().includes(term) || u.username.toLowerCase().includes(term));
-    renderPotentialFriends(filtered);
+  searchInput?.addEventListener("input", async (e) => {
+    const query = e.target.value;
+    const res = await fetch(`/friends/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    console.log("Search results:", data);
+    renderPotentialFriends(data);
   });
 
   function updateFriendList() {

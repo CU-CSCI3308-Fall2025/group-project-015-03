@@ -181,15 +181,39 @@ app.get('/feed', requireLogin, (req, res) => {
   });
 });
 
+app.get('/friends', requireLogin, async (req, res) => {
+  const query = 'SELECT friend FROM friends WHERE username = $1;';
+  let results;
+  try {
+    results = await db.any(query, [req.session.user.username]);
+    res.render('pages/friends', {
+      layout: 'main',
+      title: 'Friends',
+      username: req.session.user.username,
+      results: results
+    });
+  }
+  catch {
+      console.error(err),
+      res.status(400).json({
+      error: err,
+    });
+  }
+});
 
-
-
-app.get('/friends', requireLogin, (req, res) => {
-  res.render('pages/friends', {
-    layout: 'main',
-    title: 'Friends',
-    username: req.session.user.username
-  });
+app.get('/friends/search', requireLogin, async (req, res) => {
+  const search = req.query.q || "";
+  const query = 'SELECT username, quote FROM users WHERE username ILIKE $1;';
+  try {
+    let results = await db.any(query, [`%${search}%`]);
+    res.json(results);
+  }
+  catch {
+      console.error(err),
+      res.status(400).json({
+      error: err,
+    });
+  }
 });
 
 app.get('/prompts', requireLogin, async (req, res) => {
@@ -246,7 +270,7 @@ app.post('/prompts/answer', async (req, res) => {
   const {text, prompt_id, username} = req.body;
   const query = 'INSERT INTO responses(response_txt, username) VALUES ($1, $2);';
   try {
-    await db.none(query, [text, username]);
+    await db.none(query, [text, req.session.user.username]);
     res.render('pages/feed');
   }
   catch (err) {
