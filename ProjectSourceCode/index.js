@@ -250,19 +250,41 @@ let entries = [
   { title: 'Second Entry', text: 'Feeling productive and creative.'}
 ];
 
-app.get('/journal', async (req, res) => {
+app.get('/journal', requireLogin, async (req, res) => {
+  const username = req.session?.user?.username;
+
   try {
-    const entries = await db.any('SELECT * FROM journals ORDER BY created_at DESC');
+    // 1) Daily entries = responses (joined to prompts, may be null if not answered)
+    const dailyEntries = await db.any(
+  `SELECT response_id, response_txt, created_at
+   FROM responses
+   WHERE username = $1
+   ORDER BY created_at DESC`,
+  [username]
+);
+
+    // 2) Other entries = journals table (normal and guided entries)
+    const journalEntries = await db.any(
+      `SELECT id, title, content, created_at
+       FROM journals
+       WHERE username = $1
+       ORDER BY created_at DESC`,
+      [username]
+    );
+
     res.render('pages/journal', {
       layout: 'main',
-      title: 'My Journal Entries',
-      entries
+      title: 'My Journal',
+      dailyEntries,
+      journalEntries
     });
+
   } catch (err) {
-    console.error('Error loading journal entries:', err);
+    console.error('Error loading journal page:', err);
     res.status(500).send('Database read error');
   }
 });
+
 
 app.get('/journal/new', (req, res) => {
   res.render('pages/newJournal', { layout: 'main' });

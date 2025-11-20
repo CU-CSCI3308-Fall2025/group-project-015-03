@@ -1,0 +1,38 @@
+<main class="container mt-4">
+
+  <h3 class="mb-3 text-center">
+    {{#if isPrompt}}
+      Daily Prompt Journal Entry
+    {{else}}
+      New Journal Entry
+    {{/if}}
+  </h3>
+
+  <form action="/journal/new" method="POST" class="p-3 border rounded shadow-sm">
+
+    {{#if isPrompt}}
+      {{!-- <div class="mb-3">
+        <p class="fw-bold">{{prompt.prompt_txt}}</p>
+      </div> --}}
+
+      <input type="hidden" name="prompt_id" value="{{prompt.prompt_id}}">
+    {{/if}}
+
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+
+      <input type="text" id="title" name="title" class="form-control"
+        {{#if isPrompt}} value="Response to: {{prompt.prompt_txt}}" {{/if}}
+        required>
+    </div>
+
+    <div class="mb-3">
+      <label for="text" class="form-label">Your Entry</label>
+      <textarea id="text" name="text" class="form-control" rows="5" required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Save Entry</button>
+
+  </form>
+
+</main>

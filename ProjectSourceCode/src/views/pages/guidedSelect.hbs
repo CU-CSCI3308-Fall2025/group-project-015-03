@@ -1,0 +1,14 @@
+<div class="container py-4">
+  <h3 class="text-center mb-4">Choose a Feeling</h3>
+
+  <div class="row justify-content-center g-3">
+    {{#each feelings}}
+      <div class="col-8 col-md-4">
+        <a href="/journal/guided/prompt?feeling={{this}}" 
+           class="btn btn-outline-primary w-100 py-3 rounded-pill">
+          {{this}}
+        </a>
+      </div>
+    {{/each}}
+  </div>
+</div>

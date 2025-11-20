@@ -1,0 +1,4 @@
+- find a way to autogenerate the prompts instead of hard-coding, it is okay for now
+- no other questions, looks good for now
+- he knows our situation in terms of the number of people we have in relation to the amount of work
+we are able to produce, so we will be graded appropriately
