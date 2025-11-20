@@ -22,9 +22,11 @@
       <p><strong>Personal Quote:</strong> <span id="display-quote">“blah blah”</span></p>
       <p><strong>Spotify:</strong> <span class="text-muted">(not connected)</span></p>
 
-      <div class="mt-4 d-flex justify-content-between">
+      <div class="mt-4 d-flex justify-content">
         <button class="btn btn-outline-primary w-50 me-2" id="edit-btn">edit profile</button>
-        <button class="btn btn-primary w-50 ms-2">log out</button>
+        <form action="/logout" method="GET" class="w-100">
+          <button type="submit" class="btn btn-primary w-50 me-2">Logout</button>
+        </form>
       </div>
     </div>
 

@@ -46,7 +46,6 @@ app.use(express.json());
 // serve static files (for your frontend)
 app.use(express.static(path.join(__dirname, 'src/resources')));
 
-
 app.use(session({
   secret: 'tumble-stack-secret-key',
   resave: false,
@@ -55,21 +54,11 @@ app.use(session({
 }));
 
 function requireLogin(req, res, next) {
-  // temporary bypass for frontend testing
   if (!req.session.user) {
     return res.redirect('/login');
   }
   next();
 }
-// for integration later:
-// function requireLogin(req, res, next) {
-//   if (!req.session.user) {
-//     return res.redirect('/login');
-//   }
-//   next();
-// }
-
-
 
 app.get('/', (req, res) => {
   res.redirect('/login');
@@ -180,9 +169,6 @@ app.get('/feed', requireLogin, (req, res) => {
     posts: samplePosts
   });
 });
-
-
-
 
 app.get('/friends', requireLogin, (req, res) => {
   res.render('pages/friends', {
@@ -321,8 +307,6 @@ app.post('/journal/new', async (req, res) => {
     res.status(500).send('Database insert error');
   }
 });
-
-
 
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV != 'test') {
