@@ -15,15 +15,24 @@ const hbs = handlebars.create({
 });
 
 // database configuration
-const dbConfig = {
-  host: 'db', // the database server
-  port: 5432, // the database port
-  database: process.env.POSTGRES_DB, // the database name
-  user: process.env.POSTGRES_USER, // the user account to connect with
-  password: process.env.POSTGRES_PASSWORD, // the password of the user account
-};
+let db;
 
-const db = pgp(dbConfig);
+if (process.env.RENDER) {
+  // Running on Render
+  db = pgp({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+} else {
+  // Local (Docker)
+  db = pgp({
+    host: 'db',
+    port: 5432,
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD
+  });
+}
 
 // test your database
 db.connect()

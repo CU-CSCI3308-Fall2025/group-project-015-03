@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS responses (
     response_id SERIAL PRIMARY KEY,
     response_txt VARCHAR(500),
     username VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (username) REFERENCES users(username)  
 );
 
