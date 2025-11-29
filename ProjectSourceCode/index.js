@@ -7,6 +7,7 @@ const pgp = require('pg-promise')(); // To connect to the Postgres DB from the n
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 
 const hbs = handlebars.create({
   extname: 'hbs',
@@ -53,6 +54,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // serve static files (for your frontend)
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, 'src/resources')));
 
 app.use(session({
@@ -68,6 +70,19 @@ function requireLogin(req, res, next) {
   }
   next();
 }
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'public/images'));
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const username = req.session.user.username;
+    cb(null, `${username}_profile${ext}`);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 app.get('/', (req, res) => {
   res.redirect('/login');
@@ -151,17 +166,68 @@ app.get('/home', requireLogin, (req, res) => {
   res.render('pages/feed', { title: 'Home' , username: req.session.user.username});
 });
 
-// TEMPORARY fake login for testing
-// app.get('/fake-login', (req, res) => {
-//   req.session = req.session || {};
-//   req.session.user = { username: 'maya' }; // pretend this user is logged in
-//   console.log('✅ fake login activated for', req.session.user.username);
-//   res.redirect('/feed'); // or '/journal' or '/home'
-// });
+app.get('/profile', requireLogin, async (req, res) => {
+  try {
+    const username = req.session.user.username;
+    const user = await db.one('SELECT username, nickname, pronouns, quote, pfp_link FROM users WHERE username = $1', [username]);
+    const profilePic = user?.pfp_link || 'sun.png';
 
-app.get('/profile', requireLogin, (req, res) => {
-  res.render('pages/profile', { layout: 'main' , title: 'Profile' , username: req.session.user.username});
+    res.render('pages/profile', {
+      layout: 'main',
+      title: 'Profile',
+      username,
+      nickname: user.nickname || '',
+      pronouns: user.pronouns || '',
+      quote: user.quote || '',
+      profilePic
+    });
+  } catch (err) {
+    console.error('Error loading profile:', err);
+    res.status(500).send('Database error');
+  }
 });
+
+app.post('/profile/picture', requireLogin, upload.single('pfp'), async (req, res) => {
+  const username = req.session.user.username;
+  if (!req.file) {
+    return res.redirect('/profile'); // no file selected
+  }
+
+  const pfp_link = `${req.file.filename}`;
+
+  try {
+    await db.none('UPDATE users SET pfp_link = $1 WHERE username = $2', [pfp_link, username]);
+    console.log(`Profile picture updated for ${username}`);
+    res.redirect('/profile');
+  } catch (err) {
+    console.error('Error updating profile picture:', err);
+    res.status(500).send('Server error updating profile picture');
+  }
+});
+
+
+app.post('/profile/edit', requireLogin, async (req, res) => {
+  const { nickname, pronouns, quote } = req.body;
+  const username = req.session.user.username;
+
+  try {
+    await db.none(
+      `UPDATE users
+       SET nickname = $1,
+           pronouns = $2,
+           quote = $3
+       WHERE username = $4`,
+      [nickname, pronouns, quote, username]
+    );
+
+    console.log(`Profile info updated for ${username}`);
+    res.redirect('/profile');
+  } catch (err) {
+    console.error('Error updating profile info:', err);
+    res.status(500).send('Server error updating profile info');
+  }
+});
+
 
 app.get('/feed', requireLogin, (req, res) => {
   const samplePosts = [
