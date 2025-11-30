@@ -1,6 +1,12 @@
 <div class="journal-page container mt-4">
 
-  <h4 class="mb-4 text-center fw-bold">My Journal Entries</h4>
+  <h4 class="mb-3 text-center fw-bold">My Journal Entries</h4>
+
+  <div class="text-center mb-4">
+    <a href="/journal/new" class="btn btn-primary px-4 py-2 rounded-pill">
+      + Add New Entry
+    </a>
+  </div>
 
   <div class="journal-grid">
     {{#each entries}}
@@ -9,11 +15,6 @@
         <p class="journal-text">{{this.content}}</p>
       </div>
     {{/each}}
-
-    <!-- Add New Card -->
-    <a href="/journal/new" class="journal-card add-new-card">
-      <div class="add-new-inner">+ Add New Entry</div>
-    </a>
   </div>
 
   <script src="/js/main.js"></script>

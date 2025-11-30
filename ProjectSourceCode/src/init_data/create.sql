@@ -19,8 +19,10 @@ CREATE TABLE IF NOT EXISTS responses (
     response_id SERIAL PRIMARY KEY,
     response_txt VARCHAR(500),
     username VARCHAR(20),
+    prompt_id INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (username) REFERENCES users(username)  
+    FOREIGN KEY (username) REFERENCES users(username),  
+    FOREIGN KEY (prompt_id) REFERENCES prompts(prompt_id)
 );
 
 DROP TABLE IF EXISTS journals CASCADE;
@@ -55,4 +57,24 @@ CREATE TABLE IF NOT EXISTS responses_to_users (
     response_id INT NOT NULL,
     FOREIGN KEY (username) REFERENCES users(username),
     FOREIGN KEY (response_id) REFERENCES responses(response_id)
+);
+
+DROP TABLE IF EXISTS comments CASCADE;
+CREATE TABLE IF NOT EXISTS comments (
+    comment_id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL,
+    username VARCHAR(20) NOT NULL,
+    comment_txt VARCHAR(500) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES responses(response_id),
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+
+DROP TABLE IF EXISTS likes CASCADE;
+CREATE TABLE IF NOT EXISTS likes (
+    post_id INT NOT NULL,
+    username VARCHAR(20) NOT NULL,
+    PRIMARY KEY(post_id, username),
+    FOREIGN KEY (post_id) REFERENCES responses(response_id),
+    FOREIGN KEY (username) REFERENCES users(username)
 );
