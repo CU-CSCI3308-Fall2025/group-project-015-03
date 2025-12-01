@@ -1,43 +1,128 @@
-<main class="container mt-5">
-  <h2 class="mb-4 text-center">Friends</h2>
+<main class="container mt-5 friends-page">
+  <h2 class="mb-4 text-center fw-bold text-pink">Friends</h2>
 
-  <!-- search -->
-  <div class="row mb-4 justify-content-center">
-    <div class="col-md-6">
-      <input type="text" id="friendSearch" class="form-control" placeholder="Search for friends...">
+  {{#if errorMessage}}
+    <div class="alert alert-danger">{{errorMessage}}</div>
+  {{/if}}
+
+  <!-- Pending Friend Requests -->
+  {{#if pendingRequests}}
+    {{#if pendingRequests.length}}
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="bi bi-clock-history me-2"></i>
+            Pending Requests ({{pendingRequests.length}})
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            {{#each pendingRequests}}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <img 
+                    src="/images/{{#if this.pfp_link}}{{this.pfp_link}}{{else}}profile-placeholder.png{{/if}}" 
+                    class="rounded-circle me-3" 
+                    width="50" 
+                    height="50"
+                    style="object-fit: cover;">
+                  <div>
+                    <h6 class="mb-0">{{#if this.nickname}}{{this.nickname}}{{else}}{{this.username}}{{/if}}</h6>
+                    <small class="text-muted">@{{this.username}}</small>
+                  </div>
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-success accept-request-btn" data-username="{{this.username}}">
+                    <i class="bi bi-check-circle me-1"></i>Accept
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger reject-request-btn" data-username="{{this.username}}">
+                    <i class="bi bi-x-circle me-1"></i>Reject
+                  </button>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  {{/if}}
+
+  <!-- Search for Friends -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-search me-2"></i>
+        Find Friends
+      </h5>
+    </div>
+    <div class="card-body">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <input 
+            type="text" 
+            id="friendSearch" 
+            class="form-control form-control-lg" 
+            placeholder="Search by username or nickname...">
+        </div>
+      </div>
+
+      <div id="searchResults" class="mt-4">
+        <p class="text-center text-muted">Start typing to search for friends...</p>
+      </div>
     </div>
   </div>
 
-  <div id="friendsGrid" class="row g-4 text-center text-muted">
-    <p>Start typing to search for friends...</p>
-  </div>
-
-  <!-- friend list -->
-  <div class="mt-5">
-    <h4>Your Friends</h4>
-    <ul id="friendList" class="list-group"></ul>
+  <!-- Your Friends List -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">
+        <i class="bi bi-people-fill me-2"></i>
+        Your Friends {{#if friends}}({{friends.length}}){{/if}}
+      </h5>
+    </div>
+    <div class="card-body">
+      {{#if friends}}
+        {{#if friends.length}}
+          <div class="list-group list-group-flush">
+            {{#each friends}}
+              <div class="list-group-item d-flex justify-content-between align-items-center friend-item">
+                <div class="d-flex align-items-center">
+                  <img 
+                    src="/images/{{#if this.pfp_link}}{{this.pfp_link}}{{else}}profile-placeholder.png{{/if}}" 
+                    class="rounded-circle me-3" 
+                    width="50" 
+                    height="50"
+                    style="object-fit: cover;">
+                  <div>
+                    <h6 class="mb-0">{{#if this.nickname}}{{this.nickname}}{{else}}{{this.username}}{{/if}}</h6>
+                    <small class="text-muted">@{{this.username}}</small>
+                    {{#if this.pronouns}}
+                      <small class="text-muted ms-2">({{this.pronouns}})</small>
+                    {{/if}}
+                  </div>
+                </div>
+                <button class="btn btn-sm btn-outline-danger remove-friend-btn" data-username="{{this.username}}">
+                  <i class="bi bi-person-dash me-1"></i>Unfriend
+                </button>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="text-center text-muted py-4">
+            <i class="bi bi-people" style="font-size: 3rem; opacity: 0.3;"></i>
+            <br>
+            No friends yet. Search above to add some!
+          </p>
+        {{/if}}
+      {{else}}
+        <p class="text-center text-muted py-4">
+          <i class="bi bi-people" style="font-size: 3rem; opacity: 0.3;"></i>
+          <br>
+          No friends yet. Search above to add some!
+        </p>
+      {{/if}}
+    </div>
   </div>
 </main>
 
-<!-- friend modal -->
-<div class="modal fade" id="friendModal" tabindex="-1" aria-labelledby="friendModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="friendModalLabel">Friend Profile</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center">
-        <img id="modalProfileImg" src="/images/profile-placeholder.png" class="rounded-circle mb-3" width="100" />
-        <h5 id="modalName"></h5>
-        <p class="text-muted">@<span id="modalUsername"></span></p>
-        <blockquote class="fst-italic" id="modalQuote"></blockquote>
-      </div>
-      <div class="modal-footer justify-content-center">
-        <button id="addFriendBtn" class="btn btn-primary">Add Friend</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="/js/main.js"></script>
+<script src="/js/friends.js"></script>
