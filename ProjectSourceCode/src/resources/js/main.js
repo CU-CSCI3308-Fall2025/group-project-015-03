@@ -5,7 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // 1. THEME INIT
   // =========================
-  let savedTheme = localStorage.getItem("theme") || "pink";
+  let savedTheme = document.body.dataset.theme;
+  localStorage.setItem("theme", savedTheme);
   document.body.dataset.theme = savedTheme;
 
   // =========================

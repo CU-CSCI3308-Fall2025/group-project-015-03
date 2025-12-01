@@ -15,26 +15,26 @@ const hbs = handlebars.create({
   partialsDir: path.join(__dirname + '/src/views/partials'),
 });
 
-Handlebars.registerHelper('add', function(a, b) {
+Handlebars.registerHelper('add', function (a, b) {
   return a + b;
 });
 
-Handlebars.registerHelper('truncate', function(text, length) {
+Handlebars.registerHelper('truncate', function (text, length) {
   if (!text) return '';
   if (text.length <= length) return text;
   return text.substring(0, length) + '...';
 });
 
-Handlebars.registerHelper('formatDate', function(date) {
+Handlebars.registerHelper('formatDate', function (date) {
   if (!date) return '';
   const d = new Date(date);
-  
+
   // Convert to MST (UTC-7)
   const mstDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Denver' }));
-  
-  return mstDate.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
+
+  return mstDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
@@ -42,7 +42,7 @@ Handlebars.registerHelper('formatDate', function(date) {
   });
 });
 
-Handlebars.registerHelper('eq', function(a, b) {
+Handlebars.registerHelper('eq', function (a, b) {
   return a === b;
 });
 
@@ -68,13 +68,13 @@ if (process.env.RENDER) {
 
 // test your database
 db.connect()
-    .then(obj => {
-      console.log('Database connection successful'); // you can view this message in the docker compose logs
-      obj.done(); // success, release the connection;
-    })
-    .catch(error => {
-      console.log('ERROR:', error.message || error);
-    });
+  .then(obj => {
+    console.log('Database connection successful'); // you can view this message in the docker compose logs
+    obj.done(); // success, release the connection;
+  })
+  .catch(error => {
+    console.log('ERROR:', error.message || error);
+  });
 
 // middleware
 app.engine('hbs', hbs.engine);
@@ -94,6 +94,26 @@ app.use(session({
   saveUninitialized: false,
   cookie: { secure: false }
 }));
+
+app.use(async (req, res, next) => {
+  if (req.session?.user?.username) {
+    try {
+      const user = await db.one(
+        'SELECT theme FROM users WHERE username = $1',
+        [req.session.user.username]
+      );
+      
+      res.locals.theme = user.theme || "pink";
+      req.session.user.theme = user.theme;  // keep session synced
+    } catch (err) {
+      console.error("Theme middleware error:", err);
+      res.locals.theme = "pink";
+    }
+  } else {
+    res.locals.theme = "pink"; // default for guests
+  }
+  next();
+});
 
 function requireLogin(req, res, next) {
   if (!req.session.user) {
@@ -124,7 +144,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const { username , password } = req.body;
+  const { username, password } = req.body;
 
   try {
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
@@ -144,7 +164,7 @@ app.post('/register', async (req, res) => {
     console.error('Error registering user:', err);
     res.render('pages/register', {
       layout: 'secondary',
-      title: 'Register', 
+      title: 'Register',
       errorMessage: 'Server error while registering',
       username
     });
@@ -161,7 +181,7 @@ app.post('/login', async (req, res) => {
   try {
     // temporary bypass: if admin/admin, skip DB check
     if (username === 'admin' && password === 'admin') {
-      req.session.user = { username: 'admin' };
+      req.session.user = { username: 'admin', theme: "pink"  };
       console.log('Logged in as admin (bypass)');
       return res.redirect('/prompts');
     }
@@ -188,7 +208,7 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    req.session.user = { username: user.username };
+    req.session.user = { username: user.username, theme: user.theme || "pink" };
     console.log(`User logged in: ${username}`);
     res.redirect('/prompts');
 
@@ -208,13 +228,9 @@ app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
       console.error('Logout error:', err);
-    }  
+    }
     res.redirect('/login');
   });
-});
-
-app.get('/home', requireLogin, (req, res) => {
-  res.render('pages/feed', { title: 'Home' , username: req.session.user.username});
 });
 
 // =============================================
@@ -488,7 +504,9 @@ app.get('/api/friendship-status/:username', requireLogin, async (req, res) => {
 app.get('/profile', requireLogin, async (req, res) => {
   try {
     const username = req.session.user.username;
-    const user = await db.one('SELECT username, nickname, pronouns, quote, pfp_link FROM users WHERE username = $1', [username]);
+    const user = await db.one(
+      'SELECT username, nickname, pronouns, quote, pfp_link, theme FROM users WHERE username = $1',
+      [username]);
     const profilePic = user?.pfp_link || 'sun.png';
 
     res.render('pages/profile', {
@@ -498,7 +516,8 @@ app.get('/profile', requireLogin, async (req, res) => {
       nickname: user.nickname || '',
       pronouns: user.pronouns || '',
       quote: user.quote || '',
-      profilePic
+      profilePic,
+      theme: user.theme || 'pink'
     });
   } catch (err) {
     console.error('Error loading profile:', err);
@@ -536,7 +555,7 @@ app.post('/profile/picture', requireLogin, upload.single('pfp'), async (req, res
 
 
 app.post('/profile/edit', requireLogin, async (req, res) => {
-  const { nickname, pronouns, quote } = req.body;
+  const { nickname, pronouns, quote, theme } = req.body;
   const username = req.session.user.username;
 
   try {
@@ -544,12 +563,12 @@ app.post('/profile/edit', requireLogin, async (req, res) => {
       `UPDATE users
        SET nickname = $1,
            pronouns = $2,
-           quote = $3
-       WHERE username = $4`,
-      [nickname, pronouns, quote, username]
+           quote = $3,
+           theme = $4
+       WHERE username = $5`,
+      [nickname, pronouns, quote, theme, username]
     );
 
-    console.log(`Profile info updated for ${username}`);
     res.redirect('/profile');
   } catch (err) {
     console.error('Error updating profile info:', err);
@@ -812,11 +831,11 @@ app.get('/prompts', requireLogin, async (req, res) => {
         AND prompt_id <= $3
         AND created_at >= $4
     `;
-    
+
     const answeredResult = await db.one(answeredQuery, [
-      username, 
-      start_index, 
-      end_index, 
+      username,
+      start_index,
+      end_index,
       today
     ]);
 
@@ -861,7 +880,7 @@ app.get('/prompts', requireLogin, async (req, res) => {
 
 
 // Add new entry form
-app.get('/prompts/answer', async(req,res) => {
+app.get('/prompts/answer', async (req, res) => {
   const prompt_id = req.query.prompt_id;
   const query = 'SELECT * FROM prompts WHERE prompt_id = $1;';
   try {
@@ -874,11 +893,11 @@ app.get('/prompts/answer', async(req,res) => {
   }
   catch (err) {
     console.error(err),
-    res.render('pages/newResponse', {
-      layout: 'main',
-      username: req.session.user.username,
-      errorMessage: 'Failed to load prompt'
-    });
+      res.render('pages/newResponse', {
+        layout: 'main',
+        username: req.session.user.username,
+        errorMessage: 'Failed to load prompt'
+      });
   }
 });
 
@@ -982,10 +1001,10 @@ app.post('/journal/new', requireLogin, async (req, res) => {
        VALUES ($1, $2, $3, $4)`,
       [title || 'Untitled Entry', content, username, type || 'quick']
     );
-    
+
     console.log(`Journal entry saved for ${username}`);
     res.redirect('/journal');
-    
+
   } catch (err) {
     console.error('Error inserting journal entry:', err);
     res.status(500).render('pages/journal', {
@@ -1011,7 +1030,7 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
     reflective: 'Self-Reflection',
     happy: 'Celebration Entry'
   };
-  
+
   const title = topicTitles[prompt_topic] || 'Guided Entry';
 
   try {
@@ -1020,10 +1039,10 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [title, content, username, 'guided', prompt_topic, prompt_text]
     );
-    
+
     console.log(`Guided journal entry saved for ${username} (topic: ${prompt_topic})`);
     res.redirect('/journal');
-    
+
   } catch (err) {
     console.error('Error inserting guided journal entry:', err);
     res.status(500).render('pages/journal', {

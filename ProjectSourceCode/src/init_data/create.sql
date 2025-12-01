@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     pronouns VARCHAR(10),
     nickname VARCHAR(20),
     quote VARCHAR(50),
-    pfp_link VARCHAR(50)
+    pfp_link VARCHAR(50),
+    theme TEXT DEFAULT 'pink'
 );
 
 DROP TABLE IF EXISTS prompts CASCADE;

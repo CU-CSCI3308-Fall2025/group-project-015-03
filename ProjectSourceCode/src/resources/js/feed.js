@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="comment-preview-item mb-2 p-2 bg-light rounded">
                 <div class="d-flex align-items-start">
                   <img 
-                    src="/images/${comment.pfp_link || 'profile-placeholder.png'}" 
+                    src="/images/${comment.pfp_link || 'sun.png'}" 
                     class="rounded-circle me-2" 
                     width="30" 
                     height="30"
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="comment-item mb-3 p-3 border rounded">
             <div class="d-flex align-items-start">
               <img 
-                src="/images/${comment.pfp_link || 'profile-placeholder.png'}" 
+                src="/images/${comment.pfp_link || 'sun.png'}" 
                 class="rounded-circle me-3" 
                 width="40" 
                 height="40"
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = userData.user;
         
         // Update modal content
-        profileModalImg.src = `/images/${user.pfp_link || 'profile-placeholder.png'}`;
+        profileModalImg.src = `/images/${user.pfp_link || 'sun.png'}`;
         profileModalName.textContent = user.nickname || user.username;
         profileModalUsername.textContent = user.username;
         profileModalPronouns.textContent = user.pronouns || '';
