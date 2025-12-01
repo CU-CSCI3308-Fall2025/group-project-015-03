@@ -1,64 +1,178 @@
 // src/resources/js/journal.js
 document.addEventListener('DOMContentLoaded', () => {
-  // Setup: hide all but first N items
-  const INIT_SHOW = 3;
 
-  function setupList(listId, loadMoreBtnId) {
-    const container = document.getElementById(listId);
-    if (!container) return;
-    const items = Array.from(container.querySelectorAll('.archive-item'));
-    items.forEach((it, i) => {
-      if (i >= INIT_SHOW) it.style.display = 'none';
-    });
+  // =============================================
+  // GUIDED PROMPTS DATA
+  // =============================================
+  const prompts = {
+    anxious: [
+      "What is making me feel anxious right now?",
+      "What can I control in this situation?",
+      "What would I tell a friend feeling this way?"
+    ],
+    grateful: [
+      "What are three things I'm grateful for today?",
+      "Who has positively impacted my life recently?",
+      "What small moment brought me joy today?"
+    ],
+    goals: [
+      "What goal do I want to achieve this month?",
+      "What's one step I can take today toward my goals?",
+      "What have I learned recently that will help me grow?"
+    ],
+    reflective: [
+      "What challenged me today and what did I learn?",
+      "How have I changed in the past year?",
+      "What patterns do I notice in my thoughts or behaviors?"
+    ],
+    happy: [
+      "What accomplishment am I proud of today?",
+      "What made me smile or laugh recently?",
+      "What positive change have I noticed in my life?"
+    ]
+  };
 
-    const loadBtn = document.getElementById(loadMoreBtnId);
-    if (!loadBtn) return;
-    loadBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      items.forEach(it => it.style.display = '');
-      loadBtn.style.display = 'none';
-    });
+  // =============================================
+  // TOPIC SELECTION & PROMPT DISPLAY
+  // =============================================
+  const topicSelect = document.getElementById('topic');
+  const promptsContainer = document.getElementById('promptsContainer');
+  const promptsList = document.getElementById('promptsList');
+  const responseContainer = document.getElementById('responseContainer');
+  const guidedContent = document.getElementById('guidedContent');
+  const submitBtn = document.getElementById('guidedSubmit');
+  const selectedPromptDisplay = document.getElementById('selectedPromptDisplay');
+  const hiddenTopic = document.getElementById('hidden-topic');
+  const hiddenPrompt = document.getElementById('hidden-prompt');
 
-    // view buttons
-    container.addEventListener('click', (e) => {
-      if (e.target.matches('.view-archive')) {
-        e.preventDefault();
-        const card = e.target.closest('.archive-item');
-        if (!card) return;
-        const title = card.querySelector('.fw-semibold')?.textContent || 'Entry';
-        const date = card.querySelector('.text-muted')?.textContent || '';
-        const full = card.getAttribute('data-full') || card.querySelector('.preview')?.textContent || '';
-        showModal(title, date, full);
+  if (topicSelect) {
+    topicSelect.addEventListener('change', function() {
+      const topic = this.value;
+      
+      if (topic && prompts[topic]) {
+        // Clear previous prompts
+        promptsList.innerHTML = '';
+        
+        // Add radio buttons for each prompt
+        prompts[topic].forEach((prompt, index) => {
+          const div = document.createElement('div');
+          div.className = 'form-check prompt-option mb-2';
+          div.innerHTML = `
+            <input 
+              class="form-check-input" 
+              type="radio" 
+              name="prompt" 
+              id="prompt${index}" 
+              value="${prompt}" 
+              required>
+            <label class="form-check-label" for="prompt${index}">
+              ${prompt}
+            </label>
+          `;
+          promptsList.appendChild(div);
+        });
+        
+        promptsContainer.style.display = 'block';
+        
+        // Handle prompt selection
+        promptsList.querySelectorAll('input[type="radio"]').forEach(radio => {
+          radio.addEventListener('change', function() {
+            if (this.checked) {
+              const selectedPrompt = this.value;
+              
+              // Show response area
+              responseContainer.style.display = 'block';
+              submitBtn.disabled = false;
+              
+              // Update hidden fields
+              hiddenTopic.value = topic;
+              hiddenPrompt.value = selectedPrompt;
+              
+              // Update placeholder and display
+              guidedContent.placeholder = `Respond to: ${selectedPrompt}`;
+              selectedPromptDisplay.innerHTML = `<i class="bi bi-lightbulb-fill me-2"></i>${selectedPrompt}`;
+              
+              // Scroll to response area
+              responseContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          });
+        });
+      } else {
+        promptsContainer.style.display = 'none';
+        responseContainer.style.display = 'none';
+        submitBtn.disabled = true;
       }
     });
   }
 
-  setupList('prompts-list', 'prompts-load-more');
-  setupList('journal-list', 'journals-load-more');
-
-  // left recent entries view links (if any)
-  document.querySelectorAll('.view-entry-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const title = e.target.dataset.title;
-      const date = e.target.dataset.date;
-      const content = e.target.dataset.content;
-      showModal(title, date, content);
+  // =============================================
+  // CHARACTER COUNTERS
+  // =============================================
+  const quickContent = document.getElementById('quick-content');
+  const quickCharCount = document.getElementById('quick-char-count');
+  
+  if (quickContent && quickCharCount) {
+    quickContent.addEventListener('input', function() {
+      quickCharCount.textContent = `${this.value.length} characters`;
     });
-  });
-
-  // modal helper
-  function showModal(title, date, content) {
-    const modalEl = document.getElementById('entryModal');
-    const titleEl = document.getElementById('entryModalTitle');
-    const dateEl = document.getElementById('entryModalDate');
-    const bodyEl = document.getElementById('entryModalBody');
-
-    titleEl.textContent = title || '';
-    dateEl.textContent = date || '';
-    bodyEl.textContent = content || '';
-
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
   }
+
+  const guidedCharCount = document.getElementById('guided-char-count');
+  
+  if (guidedContent && guidedCharCount) {
+    guidedContent.addEventListener('input', function() {
+      guidedCharCount.textContent = `${this.value.length} characters`;
+    });
+  }
+
+  // =============================================
+  // ARCHIVE ENTRY VIEWING
+  // =============================================
+  const entryModal = document.getElementById('entryModal');
+  
+  if (entryModal) {
+    entryModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      
+      const title = button.getAttribute('data-title') || 'Untitled Entry';
+      const content = button.getAttribute('data-content') || '';
+      const date = button.getAttribute('data-date') || '';
+      const type = button.getAttribute('data-type') || '';
+      const prompt = button.getAttribute('data-prompt') || '';
+      
+      // Update modal content
+      document.getElementById('entryModalLabel').textContent = title;
+      document.getElementById('entryModalDate').textContent = date;
+      document.getElementById('entryModalContent').textContent = content;
+      
+      // Show prompt if it's a guided entry
+      const promptDiv = document.getElementById('entryModalPrompt');
+      if (type === 'guided' && prompt) {
+        document.getElementById('promptText').textContent = prompt;
+        promptDiv.style.display = 'block';
+      } else {
+        promptDiv.style.display = 'none';
+      }
+    });
+  }
+
+  // =============================================
+  // FORM VALIDATION
+  // =============================================
+  const guidedForm = document.getElementById('guidedForm');
+  
+  if (guidedForm) {
+    guidedForm.addEventListener('submit', function(e) {
+      const topic = topicSelect.value;
+      const promptSelected = promptsList.querySelector('input[type="radio"]:checked');
+      const content = guidedContent.value.trim();
+      
+      if (!topic || !promptSelected || !content) {
+        e.preventDefault();
+        alert('Please select a topic, choose a prompt, and write your response.');
+        return false;
+      }
+    });
+  }
+
 });

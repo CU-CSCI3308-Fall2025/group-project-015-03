@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS journals (
     content TEXT,
     username VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(20) DEFAULT 'quick',
+    prompt_topic VARCHAR(50),
+    prompt_text VARCHAR(200),
     FOREIGN KEY (username) REFERENCES users(username)
 );
 

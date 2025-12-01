@@ -1,45 +1,186 @@
-<main class="container mt-4">
-  <h2 class="mb-3">Today’s Reflections</h2>
+<div class="feed-page container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-pink">Today's Reflections</h2>
+    <button class="btn btn-pink-outline btn-sm" onclick="window.location.reload()">
+      <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+    </button>
+  </div>
 
-  {{#each posts}}
-    <div class="card mb-3" data-username="{{this.username}}">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h5 class="card-title">{{this.username}}</h5>
-          <span class="friend-badge badge bg-success d-none">Friend</span>
+  {{#if errorMessage}}
+    <div class="alert alert-danger">{{errorMessage}}</div>
+  {{/if}}
+
+  <!-- Prompt Tabs -->
+  <ul class="nav nav-tabs mb-4" id="promptTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button 
+        class="nav-link {{#unless currentPromptFilter}}active{{/unless}}" 
+        data-filter="all"
+        onclick="window.location.href='/feed'">
+        All Prompts
+      </button>
+    </li>
+    {{#each prompts}}
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link {{#if (eq ../currentPromptFilter this.prompt_id)}}active{{/if}}" 
+          data-filter="{{this.prompt_id}}"
+          onclick="window.location.href='/feed?prompt_filter={{this.prompt_id}}'">
+          Prompt {{add @index 1}}
+        </button>
+      </li>
+    {{/each}}
+  </ul>
+
+  <!-- Feed Posts -->
+  <div class="feed-posts">
+    {{#if responses}}
+      {{#each responses}}
+        <div class="card mb-3 post-card {{#if this.is_friend}}friend-post{{/if}}" 
+             data-post-id="{{this.response_id}}"
+             data-username="{{this.username}}">
+          
+          <div class="card-body">
+            <!-- User Header -->
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="d-flex align-items-center">
+                <img 
+                  src="/images/{{#if this.pfp_link}}{{this.pfp_link}}{{else}}profile-placeholder.png{{/if}}" 
+                  class="rounded-circle me-3 profile-pic-small clickable"
+                  width="50" 
+                  height="50"
+                  data-username="{{this.username}}"
+                  style="object-fit: cover; cursor: pointer;">
+                <div>
+                  <h5 class="mb-0">
+                    <span class="username-link clickable" data-username="{{this.username}}">
+                      {{#if this.nickname}}{{this.nickname}}{{else}}{{this.username}}{{/if}}
+                    </span>
+                    {{#if this.is_friend}}
+                      <span class="badge bg-success ms-2">Friend</span>
+                    {{/if}}
+                  </h5>
+                  <small class="text-muted">@{{this.username}}</small>
+                  {{#if this.pronouns}}
+                    <small class="text-muted ms-2">({{this.pronouns}})</small>
+                  {{/if}}
+                  <br>
+                  <small class="text-muted">{{formatDate this.created_at}}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Prompt (clickable to view all comments) -->
+            <div class="prompt-display mb-3 p-3 bg-light rounded">
+              <small class="text-muted d-block mb-1">Responding to:</small>
+              <p class="mb-0 fw-semibold prompt-text" 
+                 data-bs-toggle="modal" 
+                 data-bs-target="#commentModal"
+                 data-post-id="{{this.response_id}}"
+                 style="cursor: pointer;">
+                "{{this.prompt_txt}}"
+              </p>
+            </div>
+
+            <!-- Response Text -->
+            <p class="card-text response-text">{{this.response_txt}}</p>
+
+            <!-- Action Buttons -->
+            <div class="d-flex align-items-center gap-3 mt-3 mb-3">
+              <button 
+                class="btn btn-sm {{#if this.user_liked}}btn-primary{{else}}btn-outline-primary{{/if}} like-btn"
+                data-post-id="{{this.response_id}}">
+                <i class="bi {{#if this.user_liked}}bi-heart-fill{{else}}bi-heart{{/if}}"></i>
+                <span class="like-count">{{this.like_count}}</span>
+              </button>
+              
+              <button 
+                class="btn btn-sm btn-outline-secondary comment-btn load-comments-btn"
+                data-post-id="{{this.response_id}}">
+                <i class="bi bi-chat-dots me-1"></i>Comment
+              </button>
+            </div>
+
+            <!-- Preview Comments (First 3) -->
+            <div class="comments-preview" data-post-id="{{this.response_id}}">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
         </div>
-        <p class="card-text">“{{this.text}}”</p>
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-outline-primary btn-sm like-btn"><span class="like-text">Like</span></button>
-          <span class="like-count">(0)</span>
-          <button class="btn btn-outline-secondary btn-sm comment-btn" data-bs-toggle="modal" data-bs-target="#commentModal">💬 Comment</button>
-        </div>
-        <ul class="comment-list list-unstyled mt-3"></ul>
+      {{/each}}
+    {{else}}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+        <p class="mt-3">No reflections yet. Be the first to share!</p>
       </div>
-    </div>
-  {{/each}}
+    {{/if}}
+  </div>
+</div>
 
-  {{#unless posts}}
-    <p class="text-muted">No reflections yet — be the first to post!</p>
-  {{/unless}}
-</main>
-
-<!-- comment modal -->
+<!-- Comment Modal (View All Comments + Add New) -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="commentModalLabel">Add Comment</h5>
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="commentModalLabel">All Comments</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <textarea id="commentText" class="form-control" rows="3" placeholder="Write your comment..."></textarea>
-      </div>
-      <div class="modal-footer">
-        <button id="submitComment" class="btn btn-primary">Submit</button>
+        <!-- Comments List -->
+        <div id="commentsList" class="mb-4">
+          <div class="text-center text-muted py-3">
+            <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mb-0 mt-2">Loading comments...</p>
+          </div>
+        </div>
+
+        <!-- Add Comment Form -->
+        <div class="add-comment-form">
+          <label for="commentText" class="form-label fw-semibold">Add a comment</label>
+          <textarea 
+            id="commentText" 
+            class="form-control mb-2" 
+            rows="3" 
+            placeholder="Write your comment..."></textarea>
+          <button id="submitComment" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i>Submit Comment
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<script src="/js/main.js"></script>
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="profileModalLabel">User Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="profileModalImg" src="/images/profile-placeholder.png" class="rounded-circle mb-3" width="100" height="100" style="object-fit: cover;">
+        <h5 id="profileModalName"></h5>
+        <p class="text-muted">@<span id="profileModalUsername"></span></p>
+        <p id="profileModalPronouns" class="text-muted small"></p>
+        <blockquote class="fst-italic mt-3" id="profileModalQuote"></blockquote>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button id="addFriendBtn" class="btn btn-primary" data-username="">
+          <i class="bi bi-person-plus me-1"></i>Add Friend
+        </button>
+        <button id="friendStatusBtn" class="btn btn-success" style="display: none;" disabled>
+          <i class="bi bi-check-circle me-1"></i>Friends
+        </button>
+        <button id="pendingStatusBtn" class="btn btn-secondary" style="display: none;" disabled>
+          <i class="bi bi-clock me-1"></i>Request Pending
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/feed.js"></script>
