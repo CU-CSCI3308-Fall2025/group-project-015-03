@@ -7,6 +7,7 @@ const pgp = require('pg-promise')(); // To connect to the Postgres DB from the n
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 
 const hbs = handlebars.create({
   extname: 'hbs',
@@ -15,15 +16,24 @@ const hbs = handlebars.create({
 });
 
 // database configuration
-const dbConfig = {
-  host: 'db', // the database server
-  port: 5432, // the database port
-  database: process.env.POSTGRES_DB, // the database name
-  user: process.env.POSTGRES_USER, // the user account to connect with
-  password: process.env.POSTGRES_PASSWORD, // the password of the user account
-};
+let db;
 
-const db = pgp(dbConfig);
+if (process.env.RENDER) {
+  // Running on Render
+  db = pgp({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+} else {
+  // Local (Docker)
+  db = pgp({
+    host: 'db',
+    port: 5432,
+    database: process.env.POSTGRES_DB,
+    user: process.env.POSTGRES_USER,
+    password: process.env.POSTGRES_PASSWORD
+  });
+}
 
 // test your database
 db.connect()
@@ -44,6 +54,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // serve static files (for your frontend)
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, 'src/resources')));
 
 app.use(session({
@@ -59,6 +70,19 @@ function requireLogin(req, res, next) {
   }
   next();
 }
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'public/images'));
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const username = req.session.user.username;
+    cb(null, `${username}_profile${ext}`);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 app.get('/', (req, res) => {
   res.redirect('/login');
@@ -87,7 +111,12 @@ app.post('/register', async (req, res) => {
 
   } catch (err) {
     console.error('Error registering user:', err);
-    res.status(500).send('Server error');
+    res.render('pages/register', {
+      layout: 'secondary',
+      title: 'Register', 
+      errorMessage: 'Server error while registering',
+      username
+    });
   }
 });
 
@@ -110,12 +139,22 @@ app.post('/login', async (req, res) => {
     const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
 
     if (!user) {
-      return res.status(401).send('Invalid username or password');
+      return res.render('pages/index', {
+        layout: 'secondary',
+        title: 'Login',
+        errorMessage: 'Invalid username or password',
+        username
+      });
     }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.status(401).send('Invalid username or password');
+      return res.render('pages/index', {
+        layout: 'secondary',
+        title: 'Login',
+        errorMessage: 'Invalid username or password',
+        username
+      });
     }
 
     req.session.user = { username: user.username };
@@ -124,7 +163,12 @@ app.post('/login', async (req, res) => {
 
   } catch (err) {
     console.error('Error logging in:', err);
-    res.status(500).send('Server error');
+    res.render('pages/index', {
+      layout: 'secondary',
+      title: 'Login',
+      errorMessage: 'Server error while logging in',
+      username
+    });
   }
 });
 
@@ -142,17 +186,86 @@ app.get('/home', requireLogin, (req, res) => {
   res.render('pages/feed', { title: 'Home' , username: req.session.user.username});
 });
 
-// TEMPORARY fake login for testing
-// app.get('/fake-login', (req, res) => {
-//   req.session = req.session || {};
-//   req.session.user = { username: 'maya' }; // pretend this user is logged in
-//   console.log('✅ fake login activated for', req.session.user.username);
-//   res.redirect('/feed'); // or '/journal' or '/home'
-// });
+app.get('/profile', requireLogin, async (req, res) => {
+  try {
+    const username = req.session.user.username;
+    const user = await db.one('SELECT username, nickname, pronouns, quote, pfp_link FROM users WHERE username = $1', [username]);
+    const profilePic = user?.pfp_link || 'sun.png';
 
-app.get('/profile', requireLogin, (req, res) => {
-  res.render('pages/profile', { layout: 'main' , title: 'Profile' , username: req.session.user.username});
+    res.render('pages/profile', {
+      layout: 'main',
+      title: 'Profile',
+      username,
+      nickname: user.nickname || '',
+      pronouns: user.pronouns || '',
+      quote: user.quote || '',
+      profilePic
+    });
+  } catch (err) {
+    console.error('Error loading profile:', err);
+    res.render('pages/profile', {
+      layout: 'main',
+      title: 'Profile',
+      username,
+      errorMessage: 'Failed to load profile'
+    });
+  }
 });
+
+app.post('/profile/picture', requireLogin, upload.single('pfp'), async (req, res) => {
+  const username = req.session.user.username;
+  if (!req.file) {
+    return res.redirect('/profile'); // no file selected
+  }
+
+  const pfp_link = `${req.file.filename}`;
+
+  try {
+    await db.none('UPDATE users SET pfp_link = $1 WHERE username = $2', [pfp_link, username]);
+    console.log(`Profile picture updated for ${username}`);
+    res.redirect('/profile');
+  } catch (err) {
+    console.error('Error updating profile picture:', err);
+    res.render('pages/profile', {
+      layout: 'main',
+      title: 'Profile',
+      username,
+      errorMessage: 'Failed to update profile picture'
+    });
+  }
+});
+
+
+app.post('/profile/edit', requireLogin, async (req, res) => {
+  const { nickname, pronouns, quote } = req.body;
+  const username = req.session.user.username;
+
+  try {
+    await db.none(
+      `UPDATE users
+       SET nickname = $1,
+           pronouns = $2,
+           quote = $3
+       WHERE username = $4`,
+      [nickname, pronouns, quote, username]
+    );
+
+    console.log(`Profile info updated for ${username}`);
+    res.redirect('/profile');
+  } catch (err) {
+    console.error('Error updating profile info:', err);
+    res.render('pages/profile', {
+      layout: 'main',
+      title: 'Profile',
+      username,
+      nickname,
+      pronouns,
+      quote,
+      errorMessage: 'Failed to update profile info'
+    });
+  }
+});
+
 
 app.get('/feed', requireLogin, (req, res) => {
   const samplePosts = [
@@ -183,30 +296,44 @@ app.get('/prompts', requireLogin, async (req, res) => {
   const day = date.getDate();
   const start_index = (day % 7) * 3;
   const end_index = start_index + 2;
-  const query = 'SELECT * FROM prompts WHERE prompt_id >= $1 AND prompt_id <= $2;';
-  let prompts = [];
+
+  const query = `
+    SELECT prompt_id, prompt_txt
+    FROM prompts
+    WHERE prompt_id >= $1 AND prompt_id <= $2
+  `;
+
   try {
-    let results = await db.any(query, [start_index, end_index]);
-    prompts = results;
-    for (let i = 0; i < 3; i++) {
-      prompts[i].title = i;
-      prompts[i].text = results[i].prompt_txt; 
-      prompts[i].id = results[i].prompt_id;
-    }
-  }
-  catch (err) {
-    console.error(err),
-    res.status(400).json({
-      error: err,
+    const results = await db.any(query, [start_index, end_index]);
+
+    // Build normalized prompts list
+    const prompts = results.map((row, i) => ({
+      title: `Prompt ${i + 1}`,
+      text: row.prompt_txt,
+      id: row.prompt_id
+    }));
+
+    return res.render('pages/prompts', {
+      layout: 'secondary',
+      title: 'Daily Prompts',
+      username: req.session.user.username,
+      prompts,
+      errorMessage: null
+    });
+
+  } catch (err) {
+    console.error("Error loading prompts:", err);
+
+    return res.render('pages/prompts', {
+      layout: 'secondary',
+      title: 'Daily Prompts',
+      username: req.session.user.username,
+      prompts: [],
+      errorMessage: 'Failed to load prompts'
     });
   }
-  res.render('pages/prompts', {
-    layout: 'secondary',
-    title: 'Daily Prompts',
-    username: req.session.user.username,
-    prompts
-  });
 });
+
 
 // Add new entry form
 app.get('/prompts/answer', async(req,res) => {
@@ -222,48 +349,55 @@ app.get('/prompts/answer', async(req,res) => {
   }
   catch (err) {
     console.error(err),
-    res.status(400).json({
-      error: err,
+    res.render('pages/newResponse', {
+      layout: 'main',
+      username: req.session.user.username,
+      errorMessage: 'Failed to load prompt'
     });
   }
 });
 
-app.post('/prompts/answer', async (req, res) => {
-  const {text, prompt_id, username} = req.body;
-  const query = 'INSERT INTO responses(response_txt, username) VALUES ($1, $2);';
+app.post('/prompts/answer', requireLogin, async (req, res) => {
+  const { text, prompt_id } = req.body;
+  const username = req.session.user.username;
+
   try {
-    await db.none(query, [text, username]);
-    res.render('pages/feed');
-  }
-  catch (err) {
-    console.error(err),
-    res.status(400).json({
-      error: err,
+    await db.none(
+      `INSERT INTO responses (response_txt, username, prompt_id)
+       VALUES ($1, $2, $3);`,
+      [text, username, prompt_id]
+    );
+
+    res.redirect('/feed');
+  } catch (err) {
+    console.error(err);
+    res.render('pages/newResponse', {
+      layout: 'main',
+      username,
+      errorMessage: 'Failed to submit your response',
+      prompt: { prompt_id, text }
     });
   }
 });
 
-
-// Temporary "database"
-let entries = [
-  { title: 'First Entry', text: 'Started journaling today!'},
-  { title: 'Second Entry', text: 'Feeling productive and creative.'}
-];
 
 app.get('/journal', requireLogin, async (req, res) => {
   const username = req.session?.user?.username;
 
   try {
-    // 1) Daily entries = responses (joined to prompts, may be null if not answered)
+    // Daily prompt-based entries
     const dailyEntries = await db.any(
-  `SELECT response_id, response_txt, created_at
-   FROM responses
-   WHERE username = $1
-   ORDER BY created_at DESC`,
-  [username]
-);
+      `SELECT response_id AS id, 
+              response_txt AS content,
+              created_at,
+              'Daily Entry' AS title
+       FROM responses
+       WHERE username = $1
+       ORDER BY created_at DESC`,
+      [username]
+    );
 
-    // 2) Other entries = journals table (normal and guided entries)
+    // Normal written journal entries
     const journalEntries = await db.any(
       `SELECT id, title, content, created_at
        FROM journals
@@ -272,18 +406,27 @@ app.get('/journal', requireLogin, async (req, res) => {
       [username]
     );
 
+    // Combine them into one array sorted by date
+    const allEntries = [...dailyEntries, ...journalEntries]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
     res.render('pages/journal', {
       layout: 'main',
       title: 'My Journal',
-      dailyEntries,
-      journalEntries
+      entries: allEntries
     });
 
   } catch (err) {
     console.error('Error loading journal page:', err);
-    res.status(500).send('Database read error');
+    res.render('pages/journal', {
+      layout: 'main',
+      title: 'My Journal',
+      entries: [],
+      errorMessage: 'Failed to load journal entries.'
+    });
   }
 });
+
 
 
 app.get('/journal/new', (req, res) => {
@@ -300,11 +443,17 @@ app.post('/journal/new', async (req, res) => {
         'INSERT INTO journals (title, content, username) VALUES ($1, $2, $3)',
         [title, text, username]
     );
-    console.log('✅ Journal entry saved:', title);
+    console.log('Journal entry saved:', title);
     res.redirect('/journal');
   } catch (err) {
     console.error(' Error inserting journal entry:', err);
-    res.status(500).send('Database insert error');
+    res.render('pages/newJournal', {
+      layout: 'main',
+      title: 'New Journal Entry',
+      errorMessage: 'Failed to save journal entry.',
+      title,
+      text
+    });
   }
 });
 
