@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="comment-preview-item mb-2 p-2 bg-light rounded">
                 <div class="d-flex align-items-start">
                   <img 
-                    src="/images/${comment.pfp_link || 'sun.png'}" 
+                    src="/images/${comment.pfp_link || 'profile-placeholder.png'}" 
                     class="rounded-circle me-2" 
                     width="30" 
                     height="30"
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="comment-item mb-3 p-3 border rounded">
             <div class="d-flex align-items-start">
               <img 
-                src="/images/${comment.pfp_link || 'sun.png'}" 
+                src="/images/${comment.pfp_link || 'profile-placeholder.png'}" 
                 class="rounded-circle me-3" 
                 width="40" 
                 height="40"
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = userData.user;
         
         // Update modal content
-        profileModalImg.src = `/images/${user.pfp_link || 'sun.png'}`;
+        profileModalImg.src = `/images/${user.pfp_link || 'profile-placeholder.png'}`;
         profileModalName.textContent = user.nickname || user.username;
         profileModalUsername.textContent = user.username;
         profileModalPronouns.textContent = user.pronouns || '';
@@ -331,13 +331,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // UTILITY FUNCTIONS
   // =============================================
   function formatDate(dateString) {
-    const date = new Date(dateString);
+    // Parse as UTC date (since DB stores in UTC)
+    const utcDate = new Date(dateString);
     
-    // Convert to MST (Mountain Standard Time)
-    const mstDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Denver' }));
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    // Get current time in MST
+    const nowMST = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Denver' }));
     
-    const diffMs = now - mstDate;
+    // Convert UTC date to MST for comparison
+    const dateMST = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+    
+    const diffMs = nowMST - dateMST;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
@@ -347,10 +350,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     
-    return mstDate.toLocaleDateString('en-US', { 
+    // For older dates, show formatted date in MST
+    return utcDate.toLocaleString('en-US', { 
       month: 'short', 
       day: 'numeric',
-      year: mstDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+      year: dateMST.getFullYear() !== nowMST.getFullYear() ? 'numeric' : undefined,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
       timeZone: 'America/Denver'
     });
   }

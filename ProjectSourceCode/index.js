@@ -25,20 +25,19 @@ Handlebars.registerHelper('truncate', function (text, length) {
   return text.substring(0, length) + '...';
 });
 
-Handlebars.registerHelper('formatDate', function (date) {
+Handlebars.registerHelper('formatDate', function(date) {
   if (!date) return '';
-  const d = new Date(date);
-
-  // Convert to MST (UTC-7)
-  const mstDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Denver' }));
-
-  return mstDate.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
+  const utcDate = new Date(date);
+  
+  // Format it in MST timezone
+  return utcDate.toLocaleString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
     year: 'numeric',
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
-    timeZone: 'America/Denver'
+    hour12: true,
+    timeZone: 'America/Denver'  // MST/MDT timezone
   });
 });
 
@@ -602,11 +601,14 @@ app.get('/feed', requireLogin, async (req, res) => {
     const start_index = (day % 7) * 3;
     const end_index = start_index + 2;
 
-    const todaysPrompts = await db.any(
+     const todaysPrompts = await db.any(
       `SELECT prompt_id, prompt_txt FROM prompts 
        WHERE prompt_id >= $1 AND prompt_id <= $2`,
       [start_index, end_index]
     );
+
+    // Convert prompt_filter to integer for comparison
+    const promptFilterInt = prompt_filter ? parseInt(prompt_filter) : null;
 
     // Get user's friends list
     const friends = await db.any(
@@ -673,7 +675,7 @@ app.get('/feed', requireLogin, async (req, res) => {
       username,
       responses: responsesWithLikes,
       prompts: todaysPrompts,
-      currentPromptFilter: prompt_filter || null
+      currentPromptFilter: promptFilterInt
     });
 
   } catch (err) {
