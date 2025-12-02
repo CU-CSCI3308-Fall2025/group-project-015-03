@@ -1,6 +1,7 @@
 // src/resources/js/friends.js
 document.addEventListener('DOMContentLoaded', () => {
 
+  const DEMO_USERS = ['Holly', 'Jack', 'Max', 'Luna', 'Finn'];
   const searchInput = document.getElementById('friendSearch');
   const searchResults = document.getElementById('searchResults');
   let searchTimeout;
