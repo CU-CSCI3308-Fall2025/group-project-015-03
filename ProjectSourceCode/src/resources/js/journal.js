@@ -1,9 +1,7 @@
 // src/resources/js/journal.js
 document.addEventListener('DOMContentLoaded', () => {
 
-  // =============================================
-  // GUIDED PROMPTS DATA
-  // =============================================
+  // guided prompt data
   const prompts = {
     anxious: [
       "What is making me feel anxious right now?",
@@ -32,9 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
-  // =============================================
-  // TOPIC SELECTION & PROMPT DISPLAY
-  // =============================================
+  // prompt display
   const topicSelect = document.getElementById('topic');
   const promptsContainer = document.getElementById('promptsContainer');
   const promptsList = document.getElementById('promptsList');
@@ -50,10 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const topic = this.value;
       
       if (topic && prompts[topic]) {
-        // Clear previous prompts
         promptsList.innerHTML = '';
-        
-        // Add radio buttons for each prompt
         prompts[topic].forEach((prompt, index) => {
           const div = document.createElement('div');
           div.className = 'form-check prompt-option mb-2';
@@ -74,25 +67,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         promptsContainer.style.display = 'block';
         
-        // Handle prompt selection
+        // prompt slection
         promptsList.querySelectorAll('input[type="radio"]').forEach(radio => {
           radio.addEventListener('change', function() {
             if (this.checked) {
               const selectedPrompt = this.value;
-              
-              // Show response area
               responseContainer.style.display = 'block';
               submitBtn.disabled = false;
-              
-              // Update hidden fields
               hiddenTopic.value = topic;
               hiddenPrompt.value = selectedPrompt;
-              
-              // Update placeholder and display
               guidedContent.placeholder = `Respond to: ${selectedPrompt}`;
               selectedPromptDisplay.innerHTML = `<i class="bi bi-lightbulb-fill me-2"></i>${selectedPrompt}`;
-              
-              // Scroll to response area
               responseContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
           });
@@ -104,10 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  // =============================================
-  // CHARACTER COUNTERS
-  // =============================================
   const quickContent = document.getElementById('quick-content');
   const quickCharCount = document.getElementById('quick-char-count');
   
@@ -125,9 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =============================================
-  // ARCHIVE ENTRY VIEWING
-  // =============================================
+  // archives
   const entryModal = document.getElementById('entryModal');
   
   if (entryModal) {
@@ -140,12 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = button.getAttribute('data-type') || '';
       const prompt = button.getAttribute('data-prompt') || '';
       
-      // Update modal content
+      // update modal
       document.getElementById('entryModalLabel').textContent = title;
       document.getElementById('entryModalDate').textContent = date;
       document.getElementById('entryModalContent').textContent = content;
       
-      // Show prompt if it's a guided entry
+      // show prompt if it's a guided entry
       const promptDiv = document.getElementById('entryModalPrompt');
       if (type === 'guided' && prompt) {
         document.getElementById('promptText').textContent = prompt;
@@ -156,9 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =============================================
-  // FORM VALIDATION
-  // =============================================
+  // form validation
   const guidedForm = document.getElementById('guidedForm');
   
   if (guidedForm) {

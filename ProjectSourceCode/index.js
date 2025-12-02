@@ -1,9 +1,9 @@
-const express = require('express'); // To build an application server or API
+const express = require('express'); 
 const app = express();
 const handlebars = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
-const pgp = require('pg-promise')(); // To connect to the Postgres DB from the node server
+const pgp = require('pg-promise')(); 
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
@@ -25,19 +25,18 @@ Handlebars.registerHelper('truncate', function (text, length) {
   return text.substring(0, length) + '...';
 });
 
-Handlebars.registerHelper('formatDate', function(date) {
+Handlebars.registerHelper('formatDate', function (date) {
   if (!date) return '';
-  const utcDate = new Date(date);
-  
-  // Format it in MST timezone
-  return utcDate.toLocaleString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
+  const d = new Date(date);
+  const mstDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Denver' }));
+
+  return mstDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
-    hour: 'numeric',
+    hour: '2-digit',
     minute: '2-digit',
-    hour12: true,
-    timeZone: 'America/Denver'  // MST/MDT timezone
+    timeZone: 'America/Denver'
   });
 });
 
@@ -49,13 +48,13 @@ Handlebars.registerHelper('eq', function (a, b) {
 let db;
 
 if (process.env.RENDER) {
-  // Running on Render
+  // running on Render
   db = pgp({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   });
 } else {
-  // Local (Docker)
+  // local (Docker)
   db = pgp({
     host: 'db',
     port: 5432,
@@ -232,9 +231,7 @@ app.get('/logout', (req, res) => {
   });
 });
 
-// =============================================
-// FRIEND SYSTEM ROUTES
-// =============================================
+//friends stuff
 // These routes handle the backend friend system
 // Tables used: friends, pending_friend_requests, users
 
@@ -243,7 +240,7 @@ app.get('/friends', requireLogin, async (req, res) => {
   const username = req.session.user.username;
 
   try {
-    // Get user's current friends
+    // get user's current friends
     const friends = await db.any(
       `SELECT u.username, u.nickname, u.pronouns, u.quote, u.pfp_link
        FROM friends f
@@ -252,7 +249,7 @@ app.get('/friends', requireLogin, async (req, res) => {
       [username]
     );
 
-    // Get pending friend requests (received)
+    // get pending friend requests (received)
     const pendingRequests = await db.any(
       `SELECT u.username, u.nickname, u.pronouns, u.quote, u.pfp_link
        FROM pending_friend_requests p
@@ -282,13 +279,13 @@ app.get('/friends', requireLogin, async (req, res) => {
   }
 });
 
-// POST /friends/request - Send a friend request
+// POST /friends/request - send a friend request
 app.post('/friends/request', requireLogin, async (req, res) => {
   const sender = req.session.user.username;
   const { receiver } = req.body;
 
   try {
-    // Check if already friends
+    // check if already friends
     const alreadyFriends = await db.oneOrNone(
       `SELECT * FROM friends 
        WHERE (username = $1 AND friend = $2) 
@@ -300,7 +297,7 @@ app.post('/friends/request', requireLogin, async (req, res) => {
       return res.status(400).json({ error: 'Already friends' });
     }
 
-    // Check if request already exists
+    // check if request already exists
     const existingRequest = await db.oneOrNone(
       `SELECT * FROM pending_friend_requests 
        WHERE sender = $1 AND receiver = $2`,
@@ -311,7 +308,7 @@ app.post('/friends/request', requireLogin, async (req, res) => {
       return res.status(400).json({ error: 'Request already sent' });
     }
 
-    // Insert friend request
+    // insert friend request
     await db.none(
       `INSERT INTO pending_friend_requests (sender, receiver) 
        VALUES ($1, $2)`,
@@ -327,13 +324,13 @@ app.post('/friends/request', requireLogin, async (req, res) => {
   }
 });
 
-// POST /friends/accept - Accept a friend request
+// POST /friends/accept - accept a friend request
 app.post('/friends/accept', requireLogin, async (req, res) => {
   const receiver = req.session.user.username;
   const { sender } = req.body;
 
   try {
-    // Check if request exists
+    // check if request exists
     const request = await db.oneOrNone(
       `SELECT * FROM pending_friend_requests 
        WHERE sender = $1 AND receiver = $2`,
@@ -344,13 +341,13 @@ app.post('/friends/accept', requireLogin, async (req, res) => {
       return res.status(404).json({ error: 'Friend request not found' });
     }
 
-    // Add both directions to friends table (bidirectional friendship)
+    // add both directions to friends table (bidirectional friendship)
     await db.none(
       `INSERT INTO friends (username, friend) VALUES ($1, $2), ($2, $1)`,
       [sender, receiver]
     );
 
-    // Remove from pending requests
+    // remove from pending requests
     await db.none(
       `DELETE FROM pending_friend_requests 
        WHERE sender = $1 AND receiver = $2`,
@@ -366,7 +363,7 @@ app.post('/friends/accept', requireLogin, async (req, res) => {
   }
 });
 
-// POST /friends/reject - Reject a friend request
+// POST /friends/reject - reject a friend request
 app.post('/friends/reject', requireLogin, async (req, res) => {
   const receiver = req.session.user.username;
   const { sender } = req.body;
@@ -387,13 +384,13 @@ app.post('/friends/reject', requireLogin, async (req, res) => {
   }
 });
 
-// POST /friends/remove - Unfriend someone
+// POST /friends/remove - unfriend someone
 app.post('/friends/remove', requireLogin, async (req, res) => {
   const username = req.session.user.username;
   const { friend } = req.body;
 
   try {
-    // Remove both directions
+    // remove both directions
     await db.none(
       `DELETE FROM friends 
        WHERE (username = $1 AND friend = $2) 
@@ -410,7 +407,7 @@ app.post('/friends/remove', requireLogin, async (req, res) => {
   }
 });
 
-// GET /friends/search - Search for users to add as friends
+// GET /friends/search - search for users to add as friends
 app.get('/friends/search', requireLogin, async (req, res) => {
   const currentUser = req.session.user.username;
   const { query } = req.query;
@@ -420,7 +417,7 @@ app.get('/friends/search', requireLogin, async (req, res) => {
   }
 
   try {
-    // Search for users (exclude current user)
+    // search for users (exclude current user)
     const users = await db.any(
       `SELECT username, nickname, pronouns, quote, pfp_link
        FROM users
@@ -430,16 +427,16 @@ app.get('/friends/search', requireLogin, async (req, res) => {
       [currentUser, `%${query}%`]
     );
 
-    // For each user, check friendship status
+    // for each user, check friendship status
     const results = await Promise.all(users.map(async (user) => {
-      // Check if already friends
+      // check if already friends
       const isFriend = await db.oneOrNone(
         `SELECT * FROM friends 
          WHERE username = $1 AND friend = $2`,
         [currentUser, user.username]
       );
 
-      // Check if request pending
+      // check if request pending
       const pendingRequest = await db.oneOrNone(
         `SELECT * FROM pending_friend_requests 
          WHERE sender = $1 AND receiver = $2`,
@@ -461,27 +458,27 @@ app.get('/friends/search', requireLogin, async (req, res) => {
   }
 });
 
-// GET /api/friendship-status/:username - Check friendship status with a user
+// GET /api/friendship-status/:username - check friendship status with a user
 app.get('/api/friendship-status/:username', requireLogin, async (req, res) => {
   const currentUser = req.session.user.username;
   const { username } = req.params;
 
   try {
-    // Check if friends
+    // check if friends
     const isFriend = await db.oneOrNone(
       `SELECT * FROM friends 
        WHERE username = $1 AND friend = $2`,
       [currentUser, username]
     );
 
-    // Check if request sent
+    // check if request sent
     const requestSent = await db.oneOrNone(
       `SELECT * FROM pending_friend_requests 
        WHERE sender = $1 AND receiver = $2`,
       [currentUser, username]
     );
 
-    // Check if request received
+    // check if request received
     const requestReceived = await db.oneOrNone(
       `SELECT * FROM pending_friend_requests 
        WHERE sender = $1 AND receiver = $2`,
@@ -584,40 +581,35 @@ app.post('/profile/edit', requireLogin, async (req, res) => {
 });
 
 
-// =============================================
-// FEED ROUTE - Show daily prompt responses
-// =============================================
+// feed
 // Shows responses from friends first, then others
 // Allows filtering by specific prompt (tab system)
 
 app.get('/feed', requireLogin, async (req, res) => {
   const username = req.session.user.username;
-  const { prompt_filter } = req.query; // Optional: filter by specific prompt
+  const { prompt_filter } = req.query;
 
   try {
-    // Get today's prompts for the tab system
+    // get today's prompts for the tab system
     const date = new Date();
     const day = date.getDate();
     const start_index = (day % 7) * 3;
     const end_index = start_index + 2;
 
-     const todaysPrompts = await db.any(
+    const todaysPrompts = await db.any(
       `SELECT prompt_id, prompt_txt FROM prompts 
        WHERE prompt_id >= $1 AND prompt_id <= $2`,
       [start_index, end_index]
     );
 
-    // Convert prompt_filter to integer for comparison
-    const promptFilterInt = prompt_filter ? parseInt(prompt_filter) : null;
-
-    // Get user's friends list
+    // get user's friends list
     const friends = await db.any(
       `SELECT friend FROM friends WHERE username = $1`,
       [username]
     );
     const friendUsernames = friends.map(f => f.friend);
 
-    // Build query to get responses
+    // build query to get responses
     let responsesQuery = `
       SELECT 
         r.response_id,
@@ -639,18 +631,17 @@ app.get('/feed', requireLogin, async (req, res) => {
 
     const queryParams = [friendUsernames.length > 0 ? friendUsernames : [''], start_index, end_index];
 
-    // If filtering by specific prompt
     if (prompt_filter) {
       responsesQuery += ` AND r.prompt_id = $4`;
       queryParams.push(prompt_filter);
     }
 
-    // Order: friends first, then by most recent
+    // friends first, then by most recent
     responsesQuery += ` ORDER BY is_friend DESC, r.created_at DESC`;
 
     const responses = await db.any(responsesQuery, queryParams);
 
-    // Get like counts for each response
+    // get like counts for each response
     const responsesWithLikes = await Promise.all(responses.map(async (response) => {
       const likeCount = await db.one(
         `SELECT COUNT(*) as count FROM likes WHERE post_id = $1`,
@@ -675,7 +666,7 @@ app.get('/feed', requireLogin, async (req, res) => {
       username,
       responses: responsesWithLikes,
       prompts: todaysPrompts,
-      currentPromptFilter: promptFilterInt
+      currentPromptFilter: prompt_filter ? Number(prompt_filter) : null
     });
 
   } catch (err) {
@@ -691,27 +682,27 @@ app.get('/feed', requireLogin, async (req, res) => {
   }
 });
 
-// POST /feed/like - Like a post
+// POST /feed/like - like a post
 app.post('/feed/like', requireLogin, async (req, res) => {
   const username = req.session.user.username;
   const { post_id } = req.body;
 
   try {
-    // Check if already liked
+    // check if already liked
     const existing = await db.oneOrNone(
       `SELECT * FROM likes WHERE post_id = $1 AND username = $2`,
       [post_id, username]
     );
 
     if (existing) {
-      // Unlike
+      // unlike
       await db.none(
         `DELETE FROM likes WHERE post_id = $1 AND username = $2`,
         [post_id, username]
       );
       res.json({ liked: false });
     } else {
-      // Like
+      // like
       await db.none(
         `INSERT INTO likes (post_id, username) VALUES ($1, $2)`,
         [post_id, username]
@@ -725,7 +716,7 @@ app.post('/feed/like', requireLogin, async (req, res) => {
   }
 });
 
-// POST /feed/comment - Add a comment to a post
+// POST /feed/comment - add a comment to a post
 app.post('/feed/comment', requireLogin, async (req, res) => {
   const username = req.session.user.username;
   const { post_id, comment_txt } = req.body;
@@ -746,7 +737,7 @@ app.post('/feed/comment', requireLogin, async (req, res) => {
   }
 });
 
-// GET /feed/comments/:post_id - Get comments for a post
+// GET /feed/comments/:post_id - get comments for a post
 app.get('/feed/comments/:post_id', requireLogin, async (req, res) => {
   const { post_id } = req.params;
 
@@ -774,7 +765,7 @@ app.get('/feed/comments/:post_id', requireLogin, async (req, res) => {
   }
 });
 
-// GET /api/user/:username - Get user profile info (for modal)
+// GET /api/user/:username - get user profile info (for modal)
 app.get('/api/user/:username', requireLogin, async (req, res) => {
   const { username } = req.params;
 
@@ -813,7 +804,7 @@ app.get('/prompts', requireLogin, async (req, res) => {
   const end_index = start_index + 2;
 
   try {
-    // Get today's prompts
+    // get today's prompts
     const promptsQuery = `
       SELECT prompt_id, prompt_txt
       FROM prompts
@@ -821,9 +812,9 @@ app.get('/prompts', requireLogin, async (req, res) => {
     `;
     const todaysPrompts = await db.any(promptsQuery, [start_index, end_index]);
 
-    // Check if user has already answered today's prompts
+    // check if user has already answered today's prompts
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of today
+    today.setHours(0, 0, 0, 0);
 
     const answeredQuery = `
       SELECT COUNT(*) as count
@@ -844,13 +835,12 @@ app.get('/prompts', requireLogin, async (req, res) => {
     const answeredCount = parseInt(answeredResult.count);
     const totalPrompts = todaysPrompts.length;
 
-    // If they've answered all prompts today, redirect to feed
+    // if they've answered all prompts today, redirect to feed
     if (answeredCount >= 1) {
       console.log(`${username} has already answered today's prompts, redirecting to feed`);
       return res.redirect('/feed');
     }
-
-    // Otherwise, show prompts page
+    // otherwise, show prompts page
     const prompts = todaysPrompts.map((row, i) => ({
       title: `Prompt ${i + 1}`,
       text: row.prompt_txt,
@@ -862,7 +852,7 @@ app.get('/prompts', requireLogin, async (req, res) => {
       title: 'Daily Prompts',
       username,
       prompts,
-      answeredCount, // Pass this to show progress
+      answeredCount, 
       totalPrompts,
       errorMessage: null
     });
@@ -881,14 +871,14 @@ app.get('/prompts', requireLogin, async (req, res) => {
 });
 
 
-// Add new entry form
+// add new entry form
 app.get('/prompts/answer', async (req, res) => {
   const prompt_id = req.query.prompt_id;
   const query = 'SELECT * FROM prompts WHERE prompt_id = $1;';
   try {
     const prompt = await db.one(query, [prompt_id]);
     res.render('pages/newResponse', {
-      layout: 'main',
+      layout: 'secondary',
       username: req.session.user.username,
       prompt
     });
@@ -931,7 +921,6 @@ app.get('/journal', requireLogin, async (req, res) => {
   const username = req.session?.user?.username;
 
   try {
-    // Daily prompt-based entries (from responses table)
     const dailyEntries = await db.any(
       `SELECT 
         response_id AS id, 
@@ -947,7 +936,6 @@ app.get('/journal', requireLogin, async (req, res) => {
       [username]
     );
 
-    // Journal entries (from journals table)
     const journalEntries = await db.any(
       `SELECT 
         id, 
@@ -963,7 +951,7 @@ app.get('/journal', requireLogin, async (req, res) => {
       [username]
     );
 
-    // Combine and sort by date
+    // combine and sort by date
     const allEntries = [...dailyEntries, ...journalEntries]
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -1019,12 +1007,12 @@ app.post('/journal/new', requireLogin, async (req, res) => {
   }
 });
 
-// POST /journal/guided - Guided prompt entry
+// POST /journal/guided - guided prompt entry
 app.post('/journal/guided', requireLogin, async (req, res) => {
   const { content, prompt_topic, prompt_text } = req.body;
   const username = req.session?.user?.username;
 
-  // Generate title from topic
+  // generate title from topic
   const topicTitles = {
     anxious: 'Anxiety Reflection',
     grateful: 'Gratitude Entry',

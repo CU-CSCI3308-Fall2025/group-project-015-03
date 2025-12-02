@@ -3,17 +3,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentPostId = null;
 
-  // =============================================
-  // LOAD PREVIEW COMMENTS ON PAGE LOAD
-  // =============================================
+  // load preview comments
   document.querySelectorAll('.comments-preview').forEach(preview => {
     const postId = preview.getAttribute('data-post-id');
     loadPreviewComments(postId, preview);
   });
 
-  // =============================================
-  // LIKE FUNCTIONALITY
-  // =============================================
+  // likes
   document.querySelectorAll('.like-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
       const postId = this.getAttribute('data-post-id');
@@ -28,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         
         if (data.liked !== undefined) {
-          // Update button appearance
+          // update button appearance
           const icon = this.querySelector('i');
           const countSpan = this.querySelector('.like-count');
           
@@ -53,9 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // =============================================
-  // LOAD FIRST 3 COMMENTS (PREVIEW)
-  // =============================================
+  // preview first three comments
   async function loadPreviewComments(postId, previewContainer) {
     try {
       const response = await fetch(`/feed/comments/${postId}`);
@@ -103,34 +97,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =============================================
-  // COMMENT MODAL (VIEW ALL COMMENTS)
-  // =============================================
+  // view all comments
   const commentModal = document.getElementById('commentModal');
   const commentText = document.getElementById('commentText');
   const submitComment = document.getElementById('submitComment');
   const commentsList = document.getElementById('commentsList');
 
-  // Open modal from "View All" button or Comment button
   document.addEventListener('click', function(e) {
-    // Check if clicked element or its parent is a comment button
     const commentBtn = e.target.closest('.view-all-comments-btn, .load-comments-btn, .prompt-text');
     if (commentBtn) {
       e.preventDefault();
       const postId = commentBtn.getAttribute('data-post-id');
       if (postId) {
         currentPostId = postId;
-        // Show modal
+        // show modal
         const modal = new bootstrap.Modal(commentModal);
         modal.show();
-        // Load comments
+        // load comments
         openCommentModal(postId);
       }
     }
   });
 
   async function openCommentModal(postId) {
-    // Clear previous comments and show loading
+    // clear previous comments and show loading
     commentsList.innerHTML = `
       <div class="text-center text-muted py-3">
         <div class="spinner-border spinner-border-sm" role="status">
@@ -140,21 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     
-    // Clear comment input
+    // clear comment input
     commentText.value = '';
     
-    // Load all comments
+    // load all comments
     await loadAllComments(postId);
   }
-
-  // When modal actually shows
   commentModal.addEventListener('show.bs.modal', async function(event) {
     if (currentPostId) {
       await loadAllComments(currentPostId);
     }
   });
 
-  // Submit comment
+  // submit comment
   submitComment.addEventListener('click', async function() {
     const text = commentText.value.trim();
     
@@ -179,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         commentText.value = '';
         await loadAllComments(currentPostId);
         
-        // Refresh preview for this post
+        // refresh preview for this post
         const previewContainer = document.querySelector(`.comments-preview[data-post-id="${currentPostId}"]`);
         if (previewContainer) {
           await loadPreviewComments(currentPostId, previewContainer);
@@ -191,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Load ALL comments for modal
+  // load ALL comments for modal
   async function loadAllComments(postId) {
     try {
       const response = await fetch(`/feed/comments/${postId}`);
@@ -235,9 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =============================================
-  // PROFILE MODAL
-  // =============================================
+  // profile modal
   const profileModal = document.getElementById('profileModal');
   const profileModalImg = document.getElementById('profileModalImg');
   const profileModalName = document.getElementById('profileModalName');
@@ -248,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const friendStatusBtn = document.getElementById('friendStatusBtn');
   const pendingStatusBtn = document.getElementById('pendingStatusBtn');
 
-  // When clicking on username or profile pic
+  // when clicking on username or profile pic
   document.querySelectorAll('.username-link, .profile-pic-small').forEach(element => {
     element.addEventListener('click', async function() {
       const username = this.getAttribute('data-username');
@@ -258,25 +244,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function openProfileModal(username) {
     try {
-      // Fetch user data
+      // fetch user data
       const userResponse = await fetch(`/api/user/${username}`);
       const userData = await userResponse.json();
       
       if (userData.user) {
         const user = userData.user;
         
-        // Update modal content
+        // update modal content
         profileModalImg.src = `/images/${user.pfp_link || 'profile-placeholder.png'}`;
         profileModalName.textContent = user.nickname || user.username;
         profileModalUsername.textContent = user.username;
         profileModalPronouns.textContent = user.pronouns || '';
         profileModalQuote.textContent = user.quote ? `"${user.quote}"` : '';
         
-        // Check friendship status
+        // check friendship status
         const statusResponse = await fetch(`/api/friendship-status/${username}`);
         const statusData = await statusResponse.json();
         
-        // Update button visibility
+        // update button visibility
         addFriendBtn.style.display = 'none';
         friendStatusBtn.style.display = 'none';
         pendingStatusBtn.style.display = 'none';
@@ -290,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
           addFriendBtn.setAttribute('data-username', username);
         }
         
-        // Show modal
+        //show modal
         const modal = new bootstrap.Modal(profileModal);
         modal.show();
       }
@@ -300,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Add friend button
+  // add friend button
   addFriendBtn.addEventListener('click', async function() {
     const username = this.getAttribute('data-username');
     
@@ -314,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       
       if (data.success) {
-        // Update button to show pending
+        // update button to show pending
         addFriendBtn.style.display = 'none';
         pendingStatusBtn.style.display = 'inline-block';
         alert('Friend request sent!');
@@ -327,17 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // =============================================
-  // UTILITY FUNCTIONS
-  // =============================================
   function formatDate(dateString) {
-    // Parse as UTC date (since DB stores in UTC)
     const utcDate = new Date(dateString);
-    
-    // Get current time in MST
     const nowMST = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Denver' }));
-    
-    // Convert UTC date to MST for comparison
     const dateMST = new Date(utcDate.toLocaleString('en-US', { timeZone: 'America/Denver' }));
     
     const diffMs = nowMST - dateMST;
@@ -350,7 +328,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     
-    // For older dates, show formatted date in MST
     return utcDate.toLocaleString('en-US', { 
       month: 'short', 
       day: 'numeric',
@@ -368,4 +345,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return div.innerHTML;
   }
 
+});
+
+// convert all post timestamps to local time
+document.querySelectorAll('.post-time').forEach(el => {
+  const ts = el.getAttribute('data-ts');
+  if (!ts) return;
+
+  const date = new Date(ts);
+
+  el.textContent = date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 });

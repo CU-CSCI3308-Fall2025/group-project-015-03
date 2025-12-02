@@ -2,24 +2,18 @@ console.log("Tumble Stack frontend loaded!");
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // =========================
-  // 1. THEME INIT
-  // =========================
+  // theme stuff
   let savedTheme = document.body.dataset.theme;
   localStorage.setItem("theme", savedTheme);
   document.body.dataset.theme = savedTheme;
 
-  // =========================
-  // 2. NAV HIGHLIGHT
-  // =========================
+  // nav
   const currentPage = window.location.pathname.split("/").filter(Boolean).pop();
   document.querySelectorAll(".nav-pill").forEach(link => {
     if (link.getAttribute("href") === currentPage) link.classList.add("active");
   });
 
-  // =========================
-  // 3. DATE DISPLAY
-  // =========================
+  // date
   const dateElement = document.getElementById("date");
   if (dateElement) {
     const today = new Date();
@@ -31,9 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // =========================
-  // 4. PROFILE PAGE
-  // =========================
+  // profile
   const editBtn = document.getElementById("edit-btn");
   const saveBtn = document.getElementById("save-edit");
   const cancelBtn = document.getElementById("cancel-edit");
@@ -133,12 +125,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.dataset.theme = pendingTheme;
   });
 
-  // =========================
-  // 5. FEED INTERACTIVITY
-  // =========================
+  // feed
   const username = "admin"; // replace with backend session username
 
-  // Likes
+  // likes
   let likesData = JSON.parse(sessionStorage.getItem("likesData") || "{}");
   document.querySelectorAll(".like-btn").forEach(btn => {
     const postId = btn.closest(".card")?.dataset.postId;
@@ -171,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (likeCountEl) likeCountEl.textContent = `(${data.count})`;
   }
 
-  // Comments
+  // comments
   const commentButtons = document.querySelectorAll(".comment-btn");
   const commentText = document.getElementById("commentText");
   const submitComment = document.getElementById("submitComment");
@@ -226,9 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // =========================
-  // 6. FRIENDS PAGE
-  // =========================
+  // friend page
   const friendsGrid = document.getElementById("friendsGrid");
   const searchInput = document.getElementById("friendSearch");
   const friendList = document.getElementById("friendList");
@@ -339,9 +327,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateFriendList();
   window.getFriendsList = () => friends;
 
-  // =========================
-  // 7. FEED FRIEND BADGES + SORTING
-  // =========================
+  // feed
   const feedContainer = document.querySelector("main.container");
   if (feedContainer) {
     const friendUsernames = friends.map(f => f.username);
