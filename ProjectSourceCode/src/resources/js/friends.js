@@ -6,13 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchResults = document.getElementById('searchResults');
   let searchTimeout;
 
-  // =============================================
-  // SEARCH FOR FRIENDS
-  // =============================================
+  // search
   searchInput.addEventListener('input', function() {
     const query = this.value.trim();
-
-    // Clear previous timeout
     clearTimeout(searchTimeout);
 
     if (query.length < 2) {
@@ -20,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Show loading state
+    //show load
     searchResults.innerHTML = `
       <div class="text-center text-muted py-3">
         <div class="spinner-border spinner-border-sm" role="status">
@@ -30,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Debounce search
     searchTimeout = setTimeout(async () => {
       try {
         const response = await fetch(`/friends/search?query=${encodeURIComponent(query)}`);
@@ -61,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           `;
 
-          // Attach event listeners to new buttons
+          // attach event listeners to new buttons
           attachSearchResultListeners();
         } else {
           searchResults.innerHTML = '<p class="text-center text-muted">No users found.</p>';
@@ -70,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error searching users:', err);
         searchResults.innerHTML = '<p class="text-center text-danger">Search failed. Please try again.</p>';
       }
-    }, 500); // 500ms debounce
+    }, 500); 
   });
 
   function renderFriendButton(user) {
@@ -104,9 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // =============================================
-  // SEND FRIEND REQUEST
-  // =============================================
+  //friend requesting
   async function sendFriendRequest(username, button) {
     try {
       const response = await fetch('/friends/request', {
@@ -118,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (data.success) {
-        // Update button to show pending
+        // update button to show pending
         button.outerHTML = `
           <button class="btn btn-sm btn-secondary" disabled>
             <i class="bi bi-clock"></i> Pending
@@ -134,9 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =============================================
-  // ACCEPT FRIEND REQUEST
-  // =============================================
+  // accept friend request
   document.querySelectorAll('.accept-request-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
       const username = this.getAttribute('data-username');
@@ -152,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.success) {
           showNotification('Friend request accepted!', 'success');
-          // Reload page to update lists
           setTimeout(() => window.location.reload(), 1000);
         } else {
           showNotification(data.error || 'Failed to accept request', 'danger');
@@ -164,9 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // =============================================
-  // REJECT FRIEND REQUEST
-  // =============================================
+  // reject
   document.querySelectorAll('.reject-request-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
       const username = this.getAttribute('data-username');
@@ -186,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.success) {
           showNotification('Friend request rejected', 'info');
-          // Remove the request from the list
           this.closest('.list-group-item').remove();
         } else {
           showNotification(data.error || 'Failed to reject request', 'danger');
@@ -198,9 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // =============================================
-  // REMOVE FRIEND
-  // =============================================
+  // remove friend
   document.querySelectorAll('.remove-friend-btn').forEach(btn => {
     btn.addEventListener('click', async function() {
       const username = this.getAttribute('data-username');
@@ -220,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data.success) {
           showNotification('Friend removed', 'info');
-          // Remove the friend from the list
           this.closest('.friend-item').remove();
         } else {
           showNotification(data.error || 'Failed to remove friend', 'danger');
@@ -231,10 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-
-  // =============================================
-  // NOTIFICATION HELPER
-  // =============================================
   function showNotification(message, type = 'info') {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;

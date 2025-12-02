@@ -2,24 +2,18 @@ console.log("Tumble Stack frontend loaded!");
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // =========================
-  // 1. THEME INIT
-  // =========================
+  // theme stuff
   let savedTheme = document.body.dataset.theme;
   localStorage.setItem("theme", savedTheme);
   document.body.dataset.theme = savedTheme;
 
-  // =========================
-  // 2. NAV HIGHLIGHT
-  // =========================
+  // nav
   const currentPage = window.location.pathname.split("/").filter(Boolean).pop();
   document.querySelectorAll(".nav-pill").forEach(link => {
     if (link.getAttribute("href") === currentPage) link.classList.add("active");
   });
 
-  // =========================
-  // 3. DATE DISPLAY
-  // =========================
+  // date
   const dateElement = document.getElementById("date");
   if (dateElement) {
     const today = new Date();
@@ -31,9 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // =========================
-  // 4. PROFILE PAGE
-  // =========================
+  // profile
   const editBtn = document.getElementById("edit-btn");
   const saveBtn = document.getElementById("save-edit");
   const cancelBtn = document.getElementById("cancel-edit");
@@ -133,12 +125,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.dataset.theme = pendingTheme;
   });
 
-  // =========================
-  // 5. FEED INTERACTIVITY
-  // =========================
+  // feed
   const username = "admin"; // replace with backend session username
 
-  // Likes
+  // likes
   let likesData = JSON.parse(sessionStorage.getItem("likesData") || "{}");
   document.querySelectorAll(".like-btn").forEach(btn => {
     const postId = btn.closest(".card")?.dataset.postId;
@@ -171,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (likeCountEl) likeCountEl.textContent = `(${data.count})`;
   }
 
-  // Comments
+  // comments
   const commentButtons = document.querySelectorAll(".comment-btn");
   const commentText = document.getElementById("commentText");
   const submitComment = document.getElementById("submitComment");
@@ -226,9 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // =========================
-  // 6. FRIENDS PAGE
-  // =========================
+  // friend page
   const friendsGrid = document.getElementById("friendsGrid");
   const searchInput = document.getElementById("friendSearch");
   const friendList = document.getElementById("friendList");
@@ -237,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalQuote = document.getElementById("modalQuote");
   const addFriendBtn = document.getElementById("addFriendBtn");
   let selectedFriend = null;
+  loadFriends();
 
   const users = [
     { name: "Alice", username: "alice123", quote: "Love journaling!" },
@@ -246,7 +235,12 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Ella", username: "ella_m", quote: "Music and reflection." }
   ];
 
-  let friends = JSON.parse(localStorage.getItem("friends")) || [];
+  let friends = [];
+
+  async function loadFriends() {
+    const res = await fetch("/friends/list");
+    friends = await res.json();
+  }
 
   function renderPotentialFriends(list = []) {
     if (!friendsGrid) return;
@@ -257,13 +251,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const col = document.createElement("div");
       col.classList.add("col-md-4", "friend-card");
       col.dataset.username = u.username;
-      col.dataset.name = u.name;
       col.dataset.quote = u.quote;
 
       col.innerHTML = `
         <div class="card p-3 text-center">
           <img src="/images/profile-placeholder.png" class="rounded-circle mx-auto mb-3" width="80" />
-          <h5>${u.name}</h5>
+          <h5>${u.username}</h5>
           <button class="btn btn-outline-primary btn-sm mt-2 view-btn" data-bs-toggle="modal" data-bs-target="#friendModal">View</button>
         </div>
       `;
@@ -285,32 +278,35 @@ document.addEventListener("DOMContentLoaded", () => {
         modalName.textContent = selectedFriend.name;
         modalUsername.textContent = selectedFriend.username;
         modalQuote.textContent = `"${selectedFriend.quote}"`;
-        const isFriend = friends.some(f => f.username === selectedFriend.username);
-        addFriendBtn.textContent = isFriend ? "Added ✓" : "Add Friend";
-        addFriendBtn.disabled = isFriend;
+        addFriendBtn.textContent = "Add Friend";
       });
     });
   }
 
-  addFriendBtn?.addEventListener("click", () => {
-    if (!selectedFriend) return;
-    if (!friends.some(f => f.username === selectedFriend.username)) {
-      friends.push(selectedFriend);
-      localStorage.setItem("friends", JSON.stringify(friends));
-      updateFriendList();
+  addFriendBtn?.addEventListener("click", async () => {
+      const friend = selectedFriend;
+
+      const res = await fetch("/friends/add", {
+        method: "POST", 
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ friend })
+      });
+      const data = await res.json();
+      updateFriendList(); 
       addFriendBtn.textContent = "Added ✓";
       addFriendBtn.disabled = true;
       if (friendsGrid) friendsGrid.innerHTML = `<p class="text-muted">Friend added!</p>`;
-    }
-  });
+    });
 
-  searchInput?.addEventListener("input", e => {
-    const term = e.target.value.toLowerCase().trim();
-    if (!term) {
-      friendsGrid.innerHTML = `<p class="text-muted">Start typing to search for friends...</p>`;
-      return;
-    }
-    renderPotentialFriends(users.filter(u => u.name.toLowerCase().includes(term) || u.username.toLowerCase().includes(term)));
+  searchInput?.addEventListener("input", async (e) => {
+    const query = e.target.value;
+    const res = await fetch(`/friends/search?q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+
+    console.log("Search results:", data);
+    renderPotentialFriends(data);
   });
 
   function updateFriendList() {
@@ -327,9 +323,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <span><strong>${f.name}</strong> <small class="text-muted">@${f.username}</small></span>
         <button class="btn btn-sm btn-outline-danger remove-friend">Remove</button>
       `;
-      li.querySelector(".remove-friend").addEventListener("click", () => {
+      li.querySelector(".remove-friend").addEventListener("click", async () => {
+        await removeFriend(f.username);
         friends = friends.filter(x => x.username !== f.username);
-        localStorage.setItem("friends", JSON.stringify(friends));
         updateFriendList();
       });
       friendList.appendChild(li);
@@ -339,9 +335,14 @@ document.addEventListener("DOMContentLoaded", () => {
   updateFriendList();
   window.getFriendsList = () => friends;
 
-  // =========================
-  // 7. FEED FRIEND BADGES + SORTING
-  // =========================
+async function removeFriend(username) {
+  await fetch(`/friends/remove$username`, {
+    method: "DELETE"
+  });
+}
+
+// === FEED FRIEND BADGES + SORTING ===
+document.addEventListener("DOMContentLoaded", () => {
   const feedContainer = document.querySelector("main.container");
   if (feedContainer) {
     const friendUsernames = friends.map(f => f.username);
@@ -365,3 +366,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
+})
