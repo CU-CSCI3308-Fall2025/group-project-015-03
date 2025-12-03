@@ -64,15 +64,28 @@ async function getAccessToken(code) {
   return await result.json();
 }
 
-// When landing on the callback page:
-const urlParams = new URLSearchParams(window.location.search);
-const code = urlParams.get("code");
+(async function () {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
 
-if (code) {
-  const { access_token } = await getAccessToken(code);
-  localStorage.setItem("access_token", access_token);
-  window.location = "/profile";  // redirect to homepage
-}
+  if (!code) {
+    console.error("No code found in URL");
+    return;
+  }
+
+  const res = await fetch("/auth/spotify/callback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code })
+  });
+
+  const data = await res.json();
+  console.log("Callback response:", data);
+
+  // redirect user after linking
+  window.location.href = "/profile";
+})();
+
 
 async function getTopTracks() {
   const token = localStorage.getItem("access_token");
