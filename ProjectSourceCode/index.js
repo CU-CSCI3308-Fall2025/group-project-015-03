@@ -1136,6 +1136,47 @@ app.get('/spotify_callback', (req, res) => {
   res.render('pages/spotify_callback');
 });
 
+// by chatgpt
+// prompt to help fix error message aboug /auth/spotify/callback returning 404
+app.post("/auth/spotify/callback", async (req, res) => {
+  const code = req.body.code;
+
+  if (!code) {
+    return res.status(400).json({ error: "Missing code" });
+  }
+
+  try {
+    const params = new URLSearchParams({
+      client_id: "aedeb4be4b254f8387739b20ba22d834",
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: "https://group-project-015-03.onrender.com/spotify_callback",
+      code_verifier: req.session.verifier || ""
+    });
+
+    const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString()
+    });
+
+    const tokenData = await tokenRes.json();
+
+    if (tokenData.error) {
+      return res.status(400).json(tokenData);
+    }
+
+    // save token somewhere (session, db)
+    req.session.access_token = tokenData.access_token;
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV != 'test') {
   app.listen(PORT, () => {
