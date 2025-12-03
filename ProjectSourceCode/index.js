@@ -501,7 +501,7 @@ app.get('/profile', requireLogin, async (req, res) => {
   try {
     const username = req.session.user.username;
     const user = await db.one(
-      'SELECT username, nickname, pronouns, quote, pfp_link, theme FROM users WHERE username = $1',
+      'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected FROM users WHERE username = $1',
       [username]);
     const profilePic = user?.pfp_link || 'sun.png';
 
@@ -513,7 +513,8 @@ app.get('/profile', requireLogin, async (req, res) => {
       pronouns: user.pronouns || '',
       quote: user.quote || '',
       profilePic,
-      theme: user.theme || 'pink'
+      theme: user.theme || 'pink',
+      spConnected: user.spotify_connected
     });
   } catch (err) {
     console.error('Error loading profile:', err);
@@ -1168,6 +1169,22 @@ app.post("/auth/spotify/callback", async (req, res) => {
 
     // save token somewhere (session, db)
     req.session.access_token = tokenData.access_token;
+
+    // Get Spotify profile
+    const spProfile = await fetch("https://api.spotify.com/v1/me", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`
+      }
+    }).then(r => r.json());
+
+    // Save minimal info in DB
+    await db.query(
+      `UPDATE users
+       SET spotify_user_id = $1,
+           spotify_connected = TRUE
+       WHERE id = $2`,
+      [spProfile.id, req.session.user.id]
+    );
 
     return res.json({ success: true });
   } catch (err) {

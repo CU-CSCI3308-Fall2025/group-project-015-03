@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
     nickname VARCHAR(20),
     quote VARCHAR(50),
     pfp_link VARCHAR(50),
+    spotify_user_id VARCHAR(35),
+    spotify_connected BOOLEAN DEFAULT FALSE,
+    top_tracks_json JSON,
     theme TEXT DEFAULT 'pink'
 );
 
