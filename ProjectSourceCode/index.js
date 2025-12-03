@@ -86,6 +86,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.static(path.join(__dirname, 'src/resources')));
 
+
 app.use(session({
   secret: 'tumble-stack-secret-key',
   resave: false,
@@ -503,7 +504,9 @@ app.get('/profile', requireLogin, async (req, res) => {
     const user = await db.one(
       'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected FROM users WHERE username = $1',
       [username]);
+    console.log("From db:", user.pfp_link);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
+    console.log("Profile pic:", profilePic);
 
     res.render('pages/profile', {
       layout: 'main',
