@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     pronouns VARCHAR(10),
     nickname VARCHAR(20),
     quote VARCHAR(50),
-    pfp_link VARCHAR(50),
+    pfp_link VARCHAR(50) DEFAULT "sun.png",
     spotify_user_id VARCHAR(35),
     spotify_connected BOOLEAN DEFAULT FALSE,
     top_tracks_json JSON,

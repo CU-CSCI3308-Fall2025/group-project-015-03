@@ -7,12 +7,6 @@ INSERT INTO users(
 ) VALUES 
 (
     'admin', 'admin', 'admin', 'admin', 'admin quote'
-),
-(
-    'marcylake', 'tumblestackadmin', 'she/her', 'marbles', 'please let me have this dream'
-),
-(
-    'keiko', 'purpledragon', 'it/its', 'k', 'im gonna be my own kind of hero'
 );
 
 -- https://decideyourlegacy.com/100-journaling-prompts-for-reflection-insight/
