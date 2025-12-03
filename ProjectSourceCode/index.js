@@ -503,7 +503,7 @@ app.get('/profile', requireLogin, async (req, res) => {
     const user = await db.one(
       'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected FROM users WHERE username = $1',
       [username]);
-    const profilePic = user?.pfp_link || 'sun.png';
+    const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
     res.render('pages/profile', {
       layout: 'main',
