@@ -50,9 +50,9 @@ CREATE TABLE IF NOT EXISTS friends (
 DROP TABLE IF EXISTS pending_friend_requests CASCADE;
 CREATE TABLE IF NOT EXISTS pending_friend_requests (
    sender VARCHAR(20),
-   reciever VARCHAR(20),
+   receiver VARCHAR(20),
    FOREIGN KEY (sender) REFERENCES users(username),
-   FOREIGN KEY (reciever) REFERENCES users(username)
+   FOREIGN KEY (receiver) REFERENCES users(username)
 );
 
 DROP TABLE IF EXISTS responses_to_users CASCADE;
