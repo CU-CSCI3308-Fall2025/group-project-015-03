@@ -498,8 +498,8 @@ app.get('/api/friendship-status/:username', requireLogin, async (req, res) => {
 });
 
 app.get('/profile', requireLogin, async (req, res) => {
+  const username = req.session.user.username;
   try {
-    const username = req.session.user.username;
     const user = await db.one(
       'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected FROM users WHERE username = $1',
       [username]);
