@@ -506,31 +506,12 @@ app.get('/profile', requireLogin, async (req, res) => {
 
   try {
     const user = await db.one(
-      `SELECT username, nickname, pronouns, quote, pfp_link, theme,
-              spotify_connected, top_tracks_json
+      `SELECT username, nickname, pronouns, quote, pfp_link, theme
        FROM users WHERE username = $1`,
       [username]
     );
 
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
-
-    const topTracks = (user.topTracksJson.items || []).map(track => ({
-      name: track.name,
-      artist: track.artists?.[0]?.name || "Unknown Artist",
-      image: track.album?.images?.[0]?.url || null,
-      url: track.external_urls?.spotify,
-      preview: track.preview_url
-    }));
-
-    if (parsed && Array.isArray(parsed.items)) {
-      topTracks = parsed.items.map(track => ({
-        name: track.name,
-        artist: track.artists?.[0]?.name || "Unknown Artist",
-        image: track.album?.images?.[0]?.url || null,
-        url: track.external_urls?.spotify || null,
-        preview: track.preview_url || null
-      }));
-    }
 
     res.render("pages/profile", {
       layout: "main",
@@ -542,7 +523,6 @@ app.get('/profile', requireLogin, async (req, res) => {
       profilePic,
       theme: user.theme || "pink",
       spConnected: user.spotify_connected || false,
-      tracks: topTracks
     });
 
   } catch (err) {
@@ -554,7 +534,6 @@ app.get('/profile', requireLogin, async (req, res) => {
       username,
       profilePic: "sun.png",
       spConnected: false,
-      tracks: [],
       errorMessage: "Failed to load profile"
     });
   }
