@@ -1143,6 +1143,7 @@ app.get('/spotify_callback', (req, res) => {
 // by chatgpt
 // prompt to help fix error message aboug /auth/spotify/callback returning 404
 app.post("/auth/spotify/callback", async (req, res) => {
+  console.log("top of auth callback post");
   const code = req.body.code;
 
   if (!code) {
@@ -1167,6 +1168,7 @@ app.post("/auth/spotify/callback", async (req, res) => {
     const tokenData = await tokenRes.json();
 
     if (tokenData.error) {
+      console.log("tokenData.error", tokenData.error);
       return res.status(400).json(tokenData);
     }
 
