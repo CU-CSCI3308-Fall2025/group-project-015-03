@@ -1180,7 +1180,7 @@ app.get("/spotify_callback", async (req, res) => {
     const username = req.session.connectingSpotifyUsername;
     await db.query(
       `UPDATE users
-       SET spotify_user_id = $1,
+       SET spotify_id = $1,
            spotify_connected = TRUE
        WHERE username = $2`,
       [spProfile.id, username]
