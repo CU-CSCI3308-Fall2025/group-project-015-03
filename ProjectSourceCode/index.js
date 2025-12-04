@@ -1211,11 +1211,13 @@ async function sha256(plain) {
 }
 
 function base64urlencode(bytes) {
-  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+  return Buffer.from(bytes)
+    .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 }
+
 
 // Route to start Spotify OAuth
 app.get("/auth/spotify/login", async (req, res) => {
