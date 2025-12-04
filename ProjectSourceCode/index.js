@@ -1222,9 +1222,12 @@ function base64urlencode(bytes) {
 // Route to start Spotify OAuth
 console.log("defining get/auth/spotify/login");
 app.get("/auth/spotify/login", async (req, res) => {
+  console.log("start of get auth");
   const verifier = generateRandomString(64);
+  console.log("verifier defined");
   const foo = sha256(verifier);
   const challenge = base64urlencode(foo);
+  console.log("your mom is a whore");
 
   console.log("storing verifier");
   // Store verifier in session
