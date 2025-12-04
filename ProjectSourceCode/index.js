@@ -1136,6 +1136,7 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
   }
 });
 
+console.log("defining get/auth/spotify/login");
 app.get("/spotify_callback", async (req, res) => {
   const code = req.query.code;
   if (!code) {
@@ -1184,7 +1185,6 @@ app.get("/spotify_callback", async (req, res) => {
       [spProfile.id, req.session.user.username]
     );
 
-    // Done — redirect back to profile
     res.redirect("/profile");
 
   } catch (err) {
@@ -1220,6 +1220,7 @@ function base64urlencode(bytes) {
 
 
 // Route to start Spotify OAuth
+console.log("defining get/auth/spotify/login");
 app.get("/auth/spotify/login", async (req, res) => {
   const verifier = generateRandomString(64);
   const challenge = base64urlencode(await sha256(verifier));
