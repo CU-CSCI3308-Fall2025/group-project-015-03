@@ -509,7 +509,7 @@ app.get('/profile', requireLogin, async (req, res) => {
       [username]);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
-    const topTracks = Array.isArray(user.topTracksJson.items)
+    const topTracks = Array.isArray(user.top_tracks_json.items)
    ? user.topTracksJson.items.map(track => ({
       name: track.name,
       artist: track.artists?.[0]?.name || "Unknown Artist",
@@ -537,6 +537,7 @@ app.get('/profile', requireLogin, async (req, res) => {
       layout: 'main',
       title: 'Profile',
       username,
+      profilePic: 'sun.png',
       errorMessage: 'Failed to load profile'
     });
   }
