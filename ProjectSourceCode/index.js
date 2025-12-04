@@ -1136,14 +1136,108 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
   }
 });
 
-app.get('/spotify_callback', (req, res) => {
-  res.render('pages/spotify_callback');
+app.get("/spotify_callback", async (req, res) => {
+  const code = req.query.code;
+  if (!code) {
+    return res.status(400).send("No code returned from Spotify");
+  }
+
+  try {
+    const verifier = req.session.verifier;
+    if (!verifier) throw new Error("Verifier missing from session");
+
+    const params = new URLSearchParams({
+      client_id: "aedeb4be4b254f8387739b20ba22d834",
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: "https://group-project-015-03.onrender.com/spotify_callback",
+      code_verifier: verifier
+    });
+
+    const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString()
+    });
+
+    const tokenData = await tokenRes.json();
+
+    if (tokenData.error) {
+      console.error("Spotify token error:", tokenData);
+      return res.status(400).send("Error getting access token from Spotify");
+    }
+
+    // Save access token in session (optional)
+    req.session.access_token = tokenData.access_token;
+
+    // Get Spotify profile
+    const spProfile = await fetch("https://api.spotify.com/v1/me", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` }
+    }).then(r => r.json());
+
+    // Update DB
+    await db.query(
+      `UPDATE users
+       SET spotify_user_id = $1,
+           spotify_connected = TRUE
+       WHERE username = $2`,
+      [spProfile.id, req.session.user.username]
+    );
+
+    // Done — redirect back to profile
+    res.redirect("/profile");
+
+  } catch (err) {
+    console.error("Spotify callback error:", err);
+    res.status(500).send("Server error during Spotify callback");
+  }
 });
 
-// by chatgpt
-// prompt to help fix error message aboug /auth/spotify/callback returning 404
+
+
+function generateRandomString(length) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+async function sha256(plain) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return crypto.subtle.digest("SHA-256", data);
+}
+
+function base64url(bytes) {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+// Route to start Spotify OAuth
+app.get("/auth/spotify/login", async (req, res) => {
+  const verifier = generateRandomString(64);
+  const challenge = base64urlencode(await sha256(verifier));
+
+  // Store verifier in session
+  req.session.verifier = verifier;
+
+  const params = new URLSearchParams({
+    client_id: "aedeb4be4b254f8387739b20ba22d834",
+    response_type: "code",
+    redirect_uri: "https://group-project-015-03.onrender.com/spotify_callback",
+    scope: "user-top-read",
+    code_challenge_method: "S256",
+    code_challenge: challenge
+  });
+
+  res.redirect(`https://accounts.spotify.com/authorize?${params}`);
+});
+
 app.post("/auth/spotify/callback", async (req, res) => {
-  console.log("top of auth callback post");
   const code = req.body.code;
 
   if (!code) {

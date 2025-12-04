@@ -26,8 +26,6 @@ if (btn) {
     const verifier = generateRandomString(64);
     const challenge = base64url(await sha256(verifier));
 
-    localStorage.setItem("verifier", verifier);
-
     const params = new URLSearchParams({
       client_id: "aedeb4be4b254f8387739b20ba22d834",
       response_type: "code",
