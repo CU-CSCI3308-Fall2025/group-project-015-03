@@ -1177,12 +1177,13 @@ app.get("/spotify_callback", async (req, res) => {
     }).then(r => r.json());
 
     // Update DB
+    const username = req.session.connectingSpotifyUsername;
     await db.query(
       `UPDATE users
        SET spotify_user_id = $1,
            spotify_connected = TRUE
        WHERE username = $2`,
-      [spProfile.id, req.session.user.username]
+      [spProfile.id, username]
     );
 
     res.redirect("/profile");
@@ -1227,7 +1228,6 @@ app.get("/auth/spotify/login", async (req, res) => {
   console.log("verifier defined");
   const foo = sha256(verifier);
   const challenge = base64urlencode(foo);
-  console.log("your mom is a whore");
 
   console.log("storing verifier");
   // Store verifier in session
@@ -1243,7 +1243,8 @@ app.get("/auth/spotify/login", async (req, res) => {
     code_challenge: challenge
   });
 
-  console.log("redirecting");
+  console.log("redirecting"); 
+  req.session.connectingSpotifyUsername = req.session.user.username;
   res.redirect(`https://accounts.spotify.com/authorize?${params}`);
 });
 
