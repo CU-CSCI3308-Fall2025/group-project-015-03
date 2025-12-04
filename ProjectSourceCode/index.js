@@ -1136,7 +1136,7 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
   }
 });
 
-console.log("defining get/auth/spotify/login");
+console.log("defining get/spotify_callback");
 app.get("/spotify_callback", async (req, res) => {
   const code = req.query.code;
   if (!code) {
@@ -1223,11 +1223,14 @@ function base64urlencode(bytes) {
 console.log("defining get/auth/spotify/login");
 app.get("/auth/spotify/login", async (req, res) => {
   const verifier = generateRandomString(64);
-  const challenge = base64urlencode(await sha256(verifier));
+  const foo = sha256(verifier);
+  const challenge = base64urlencode(foo);
 
+  console.log("storing verifier");
   // Store verifier in session
   req.session.verifier = verifier;
 
+  console.log("setting params");
   const params = new URLSearchParams({
     client_id: "aedeb4be4b254f8387739b20ba22d834",
     response_type: "code",
@@ -1237,6 +1240,7 @@ app.get("/auth/spotify/login", async (req, res) => {
     code_challenge: challenge
   });
 
+  console.log("redirecting");
   res.redirect(`https://accounts.spotify.com/authorize?${params}`);
 });
 
