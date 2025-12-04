@@ -1184,13 +1184,13 @@ app.get("/spotify_callback", async (req, res) => {
     }).then(r => r.json());
 
     // Store just what you need (name, artist, preview, link, image)
-    const simplified = new Map(
-      name: topTracks.name,
-      artist: topTracks.artists[0].name,
-      image: topTracks.album.images[0]?.url || null,
-      url: topTracks.external_urls.spotify,
-      preview: topTracks.preview_url
-    );
+    const simplified = new Map([
+      ["name", topTracks.name],
+      ["artist", topTracks.artists[0].name],
+      ["image", topTracks.album.images[0]?.url || null],
+      ["url", topTracks.external_urls.spotify],
+      ["preview", topTracks.preview_url]
+    ]);
 
     await db.query(
       `UPDATE users
