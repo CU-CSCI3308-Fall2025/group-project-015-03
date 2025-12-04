@@ -514,19 +514,13 @@ app.get('/profile', requireLogin, async (req, res) => {
 
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
-    // Parse JSON safely
-    let parsed = null;
-    try {
-      if (user.top_tracks_json) {
-        parsed = typeof user.top_tracks_json === "string"
-          ? JSON.parse(user.top_tracks_json)
-          : user.top_tracks_json;
-      }
-    } catch (e) {
-      console.error("Error parsing top_tracks_json", e);
-    }
-
-    let topTracks = [];
+    const topTracks = (user.topTracksJson.items || []).map(track => ({
+      name: track.name,
+      artist: track.artists?.[0]?.name || "Unknown Artist",
+      image: track.album?.images?.[0]?.url || null,
+      url: track.external_urls?.spotify,
+      preview: track.preview_url
+    }));
 
     if (parsed && Array.isArray(parsed.items)) {
       topTracks = parsed.items.map(track => ({
@@ -1181,6 +1175,8 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
 // "i know the example code from the website had ways to get the top 5 tracks. where should i put that code?""
 
 app.get("/spotify_callback", async (req, res) => {
+  console.log("IN CALLBACK - session.verifier =", req.session.verifier);
+  console.log("IN CALLBACK - code =", req.query.code);
   const code = req.query.code;
   if (!code) {
     return res.status(400).send("No code returned from Spotify");
@@ -1219,6 +1215,9 @@ app.get("/spotify_callback", async (req, res) => {
         Authorization: `Bearer ${tokenData.access_token}`
       }
     }).then(r => r.json());
+
+
+    console.log("RAW TOP TRACKS RESPONSE:", topTracks);
 
     // If the token is missing scope, Spotify returns:
     // { "error": { "status": 403, "message": "Insufficient client scope" } }
