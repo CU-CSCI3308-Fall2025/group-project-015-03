@@ -1175,7 +1175,7 @@ app.get("/spotify_callback", async (req, res) => {
     req.session.access_token = tokenData.access_token;
 
     // Get top 5 tracks
-    const topTracks = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short-term&limit=5", {
+    const topTracks = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=5", {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`
       }
