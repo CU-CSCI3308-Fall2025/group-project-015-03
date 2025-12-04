@@ -503,16 +503,33 @@ app.get('/api/friendship-status/:username', requireLogin, async (req, res) => {
 
 app.get('/profile', requireLogin, async (req, res) => {
   const username = req.session.user.username;
+
   try {
     const user = await db.one(
-      'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected, top_tracks_json FROM users WHERE username = $1',
-      [username]);
+      `SELECT username, nickname, pronouns, quote, pfp_link, theme,
+              spotify_connected, top_tracks_json
+       FROM users WHERE username = $1`,
+      [username]
+    );
+
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
+
+    // Parse JSON safely
+    let parsed = null;
+    try {
+      if (user.top_tracks_json) {
+        parsed = typeof user.top_tracks_json === "string"
+          ? JSON.parse(user.top_tracks_json)
+          : user.top_tracks_json;
+      }
+    } catch (e) {
+      console.error("Error parsing top_tracks_json", e);
+    }
 
     let topTracks = [];
 
-    if (user.top_tracks_json && Array.isArray(user.top_tracks_json.items)) {
-      topTracks = user.top_tracks_json.items.map(track => ({
+    if (parsed && Array.isArray(parsed.items)) {
+      topTracks = parsed.items.map(track => ({
         name: track.name,
         artist: track.artists?.[0]?.name || "Unknown Artist",
         image: track.album?.images?.[0]?.url || null,
@@ -521,29 +538,34 @@ app.get('/profile', requireLogin, async (req, res) => {
       }));
     }
 
-    res.render('pages/profile', {
-      layout: 'main',
-      title: 'Profile',
+    res.render("pages/profile", {
+      layout: "main",
+      title: "Profile",
       username,
-      nickname: user.nickname || '',
-      pronouns: user.pronouns || '',
-      quote: user.quote || '',
+      nickname: user.nickname || "",
+      pronouns: user.pronouns || "",
+      quote: user.quote || "",
       profilePic,
-      theme: user.theme || 'pink',
+      theme: user.theme || "pink",
       spConnected: user.spotify_connected || false,
       tracks: topTracks
     });
+
   } catch (err) {
-    console.error('Error loading profile:', err);
-    res.render('pages/profile', {
-      layout: 'main',
-      title: 'Profile',
+    console.error("Error loading profile:", err);
+
+    res.render("pages/profile", {
+      layout: "main",
+      title: "Profile",
       username,
-      profilePic: 'sun.png',
-      errorMessage: 'Failed to load profile'
+      profilePic: "sun.png",
+      spConnected: false,
+      tracks: [],
+      errorMessage: "Failed to load profile"
     });
   }
 });
+
 
 app.post('/profile/picture', requireLogin, upload.single('pfp'), async (req, res) => {
   const username = req.session.user.username;
