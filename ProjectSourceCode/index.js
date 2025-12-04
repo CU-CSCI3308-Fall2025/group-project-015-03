@@ -1210,7 +1210,7 @@ async function sha256(plain) {
   return crypto.subtle.digest("SHA-256", data);
 }
 
-function base64url(bytes) {
+function base64urlencode(bytes) {
   return btoa(String.fromCharCode(...new Uint8Array(bytes)))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -1236,64 +1236,6 @@ app.get("/auth/spotify/login", async (req, res) => {
 
   res.redirect(`https://accounts.spotify.com/authorize?${params}`);
 });
-
-app.post("/auth/spotify/callback", async (req, res) => {
-  const code = req.body.code;
-
-  if (!code) {
-    return res.status(400).json({ error: "Missing code" });
-  }
-
-  try {
-    const params = new URLSearchParams({
-      client_id: "aedeb4be4b254f8387739b20ba22d834",
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: "https://group-project-015-03.onrender.com/spotify_callback",
-      code_verifier: req.session.verifier || ""
-    });
-
-    const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString()
-    });
-
-    const tokenData = await tokenRes.json();
-
-    if (tokenData.error) {
-      console.log("tokenData.error", tokenData.error);
-      return res.status(400).json(tokenData);
-    }
-
-    // save token somewhere (session, db)
-    req.session.access_token = tokenData.access_token;
-
-    // Get Spotify profile
-    const spProfile = await fetch("https://api.spotify.com/v1/me", {
-      headers: {
-        Authorization: `Bearer ${tokenData.access_token}`
-      }
-    }).then(r => r.json());
-
-    console.log("Updating Spotify info for:", req.session.user.username, "with Spotify ID:", spProfile.id);
-
-    // Save minimal info in DB
-    await db.query(
-      `UPDATE users
-       SET spotify_user_id = $1,
-           spotify_connected = TRUE
-       WHERE username = $2`,
-      [spProfile.id, req.session.user.username]
-    );
-
-    return res.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
 
 const PORT = process.env.PORT || 3000;
 if (process.env.NODE_ENV != 'test') {
