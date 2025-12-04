@@ -1136,7 +1136,13 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
   }
 });
 
-console.log("defining get/spotify_callback");
+// === SPOTIFY CONNECTION ===
+// chatGPT
+// Initial Prompt: "ok i have an account set up on the spotify developer platform, 
+// how do i go about making it work in javascript? my end goal is to show user's top 5 tracks in the website"
+// additional prompts required to fix the code it originally returned
+// "i know the example code from the website had ways to get the top 5 tracks. where should i put that code?""
+
 app.get("/spotify_callback", async (req, res) => {
   const code = req.query.code;
   if (!code) {
@@ -1168,8 +1174,31 @@ app.get("/spotify_callback", async (req, res) => {
       return res.status(400).send("Error getting access token from Spotify");
     }
 
-    // Save access token in session (optional)
     req.session.access_token = tokenData.access_token;
+
+    // Get top 5 tracks
+    const topTracks = await fetch("https://api.spotify.com/v1/me/top/tracks?time_range=short-term&limit=5", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`
+      }
+    }).then(r => r.json());
+
+    // Store just what you need (name, artist, preview, link, image)
+    const simplified = topTracks.items.map(t => ({
+      name: t.name,
+      artist: t.artists[0].name,
+      image: t.album.images[0]?.url || null,
+      url: t.external_urls.spotify,
+      preview: t.preview_url
+    }));
+
+    await db.query(
+      `UPDATE users
+      SET top_tracks_json = $1
+      WHERE username = $2`,
+      [JSON.stringify(simplified), req.session.user.username]
+    );
+
 
     // Get Spotify profile
     const spProfile = await fetch("https://api.spotify.com/v1/me", {
@@ -1221,11 +1250,8 @@ function base64urlencode(bytes) {
 
 
 // Route to start Spotify OAuth
-console.log("defining get/auth/spotify/login");
 app.get("/auth/spotify/login", async (req, res) => {
-  console.log("start of get auth");
   const verifier = generateRandomString(64);
-  console.log("verifier defined");
   const foo = sha256(verifier);
   const challenge = base64urlencode(foo);
 
@@ -1233,7 +1259,6 @@ app.get("/auth/spotify/login", async (req, res) => {
   // Store verifier in session
   req.session.verifier = verifier;
 
-  console.log("setting params");
   const params = new URLSearchParams({
     client_id: "aedeb4be4b254f8387739b20ba22d834",
     response_type: "code",
@@ -1243,8 +1268,8 @@ app.get("/auth/spotify/login", async (req, res) => {
     code_challenge: challenge
   });
 
-  console.log("redirecting"); 
   req.session.connectingSpotifyUsername = req.session.user.username;
+
   res.redirect(`https://accounts.spotify.com/authorize?${params}`);
 });
 
