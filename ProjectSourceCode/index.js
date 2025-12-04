@@ -1204,10 +1204,10 @@ function generateRandomString(length) {
   return result;
 }
 
-async function sha256(plain) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(plain);
-  return crypto.subtle.digest("SHA-256", data);
+const crypto = require("crypto");
+
+function sha256(plain) {
+  return crypto.createHash("sha256").update(plain).digest();
 }
 
 function base64urlencode(bytes) {
