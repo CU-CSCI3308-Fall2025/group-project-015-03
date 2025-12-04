@@ -510,7 +510,7 @@ app.get('/profile', requireLogin, async (req, res) => {
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
     const topTracks = Array.isArray(user.top_tracks_json.items)
-   ? user.topTracksJson.items.map(track => ({
+   ? user.top_tracks_json.items.map(track => ({
       name: track.name,
       artist: track.artists?.[0]?.name || "Unknown Artist",
       image: track.album?.images?.[0]?.url || null,
@@ -528,7 +528,7 @@ app.get('/profile', requireLogin, async (req, res) => {
       quote: user.quote || '',
       profilePic,
       theme: user.theme || 'pink',
-      spConnected: user.spotify_connected,
+      spConnected: user.spotify_connected || false,
       tracks: topTracks
     });
   } catch (err) {
