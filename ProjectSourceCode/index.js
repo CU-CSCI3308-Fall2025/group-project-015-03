@@ -1185,7 +1185,7 @@ app.post("/auth/spotify/callback", async (req, res) => {
       `UPDATE users
        SET spotify_user_id = $1,
            spotify_connected = TRUE
-       WHERE id = $2`,
+       WHERE username = $2`,
       [spProfile.id, req.session.user.id]
     );
 
