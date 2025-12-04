@@ -1186,7 +1186,7 @@ app.post("/auth/spotify/callback", async (req, res) => {
        SET spotify_user_id = $1,
            spotify_connected = TRUE
        WHERE username = $2`,
-      [spProfile.id, req.session.user.id]
+      [spProfile.id, req.session.user.username]
     );
 
     return res.json({ success: true });
