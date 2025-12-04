@@ -19,8 +19,15 @@
     <div id="profile-view">
       <p><strong>Pronouns:</strong> <span id="display-pronouns">{{pronouns}}</span></p>
       <p><strong>Personal Quote:</strong> <span id="display-quote">{{quote}}</span></p>
-      <p><strong>Spotify:</strong> <span class="text-muted">{{spConnected}}</span></p>
-
+      {{#if spConnected}}
+        <ul>
+          {{#each topTracks}}
+            <li>{{name}} - {{artist}}</li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p><strong>Spotify:</strong> <span class="text-muted">Not yet connected</span></p>
+      {{/if}}
       <div class="mt-4 d-flex justify-content">
         <button class="btn btn-outline-primary w-50 me-2" id="edit-btn">Edit Profile</button>
         <form action="/logout" method="GET" class="w-100">
@@ -49,7 +56,6 @@
         <button type="button" id="spotify_login" class="btn btn-prompt">Connect Spotify</button>
         <script>
         document.getElementById("spotify_login").addEventListener("click", async () => {
-          // Request server to generate verifier & redirect
           window.location = "/auth/spotify/login";
         });
         </script>

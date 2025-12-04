@@ -502,9 +502,17 @@ app.get('/profile', requireLogin, async (req, res) => {
   const username = req.session.user.username;
   try {
     const user = await db.one(
-      'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected FROM users WHERE username = $1',
+      'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected, top_tracks_json FROM users WHERE username = $1',
       [username]);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
+
+    const topTracks = (user.topTracksJson.items || []).map(track => ({
+      name: track.name,
+      artist: track.artists?.[0]?.name || "Unknown Artist",
+      image: track.album?.images?.[0]?.url || null,
+      url: track.external_urls?.spotify,
+      preview: track.preview_url
+    }));
 
     res.render('pages/profile', {
       layout: 'main',
@@ -515,7 +523,8 @@ app.get('/profile', requireLogin, async (req, res) => {
       quote: user.quote || '',
       profilePic,
       theme: user.theme || 'pink',
-      spConnected: user.spotify_connected
+      spConnected: user.spotify_connected,
+      tracks: user.topTracks
     });
   } catch (err) {
     console.error('Error loading profile:', err);
