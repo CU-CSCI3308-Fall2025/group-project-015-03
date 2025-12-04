@@ -504,9 +504,7 @@ app.get('/profile', requireLogin, async (req, res) => {
     const user = await db.one(
       'SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected FROM users WHERE username = $1',
       [username]);
-    console.log("From db:", user.pfp_link);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
-    console.log("Profile pic:", profilePic);
 
     res.render('pages/profile', {
       layout: 'main',
@@ -1182,6 +1180,17 @@ app.get("/spotify_callback", async (req, res) => {
         Authorization: `Bearer ${tokenData.access_token}`
       }
     }).then(r => r.json());
+
+
+    console.log("RAW TOP TRACKS RESPONSE:", topTracks);
+
+    // If the token is missing scope, Spotify returns:
+    // { "error": { "status": 403, "message": "Insufficient client scope" } }
+    if (!topTracks.items) {
+      console.error("Spotify top tracks missing items:", topTracks);
+      // Don't crash; just skip saving
+      return res.redirect("/profile");
+    }
 
     // Store just what you need (name, artist, preview, link, image)
     const simplified = topTracks.items.map(t => ({
