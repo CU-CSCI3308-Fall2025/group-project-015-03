@@ -506,7 +506,7 @@ app.get('/profile', requireLogin, async (req, res) => {
 
   try {
     const user = await db.one(
-      `SELECT username, nickname, pronouns, quote, pfp_link, theme
+      `SELECT username, nickname, pronouns, quote, pfp_link, theme, spotify_connected
        FROM users WHERE username = $1`,
       [username]
     );
