@@ -509,15 +509,17 @@ app.get('/profile', requireLogin, async (req, res) => {
       [username]);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
-    const topTracks = Array.isArray(user.top_tracks_json.items)
-   ? user.top_tracks_json.items.map(track => ({
-      name: track.name,
-      artist: track.artists?.[0]?.name || "Unknown Artist",
-      image: track.album?.images?.[0]?.url || null,
-      url: track.external_urls?.spotify || null,
-      preview: track.preview_url || null,
-    }))
-  : [];
+    let topTracks = [];
+
+    if (user.top_tracks_json && Array.isArray(user.top_tracks_json.items)) {
+      topTracks = user.top_tracks_json.items.map(track => ({
+        name: track.name,
+        artist: track.artists?.[0]?.name || "Unknown Artist",
+        image: track.album?.images?.[0]?.url || null,
+        url: track.external_urls?.spotify || null,
+        preview: track.preview_url || null
+      }));
+    }
 
     res.render('pages/profile', {
       layout: 'main',
