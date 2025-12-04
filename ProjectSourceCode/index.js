@@ -509,13 +509,15 @@ app.get('/profile', requireLogin, async (req, res) => {
       [username]);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
-    const topTracks = (user.topTracksJson.items || []).map(track => ({
+    const topTracks = Array.isArray(topTracksJson.items)
+    ? topTracksJson.items.map(track => ({
       name: track.name,
       artist: track.artists?.[0]?.name || "Unknown Artist",
       image: track.album?.images?.[0]?.url || null,
-      url: track.external_urls?.spotify,
-      preview: track.preview_url
-    }));
+      url: track.external_urls?.spotify || null,
+      preview: track.preview_url || null,
+    }))
+    : [];
 
     res.render('pages/profile', {
       layout: 'main',
@@ -1154,8 +1156,6 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
 // "i know the example code from the website had ways to get the top 5 tracks. where should i put that code?""
 
 app.get("/spotify_callback", async (req, res) => {
-  console.log("IN CALLBACK - session.verifier =", req.session.verifier);
-  console.log("IN CALLBACK - code =", req.query.code);
   const code = req.query.code;
   if (!code) {
     return res.status(400).send("No code returned from Spotify");
@@ -1194,9 +1194,6 @@ app.get("/spotify_callback", async (req, res) => {
         Authorization: `Bearer ${tokenData.access_token}`
       }
     }).then(r => r.json());
-
-
-    console.log("RAW TOP TRACKS RESPONSE:", topTracks);
 
     // If the token is missing scope, Spotify returns:
     // { "error": { "status": 403, "message": "Insufficient client scope" } }
