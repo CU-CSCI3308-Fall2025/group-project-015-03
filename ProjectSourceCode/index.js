@@ -1,9 +1,9 @@
-const express = require('express'); 
+const express = require('express');
 const app = express();
 const handlebars = require('express-handlebars');
 const Handlebars = require('handlebars');
 const path = require('path');
-const pgp = require('pg-promise')(); 
+const pgp = require('pg-promise')();
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
@@ -27,17 +27,15 @@ Handlebars.registerHelper('truncate', function (text, length) {
 
 Handlebars.registerHelper('formatDate', function (date) {
   if (!date) return '';
-  const d = new Date(date);
-  const mstDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Denver' }));
 
-  return mstDate.toLocaleDateString('en-US', {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Denver',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'America/Denver'
-  });
+    minute: '2-digit'
+  }).format(new Date(date));
 });
 
 Handlebars.registerHelper('eq', function (a, b) {
@@ -101,7 +99,7 @@ app.use(async (req, res, next) => {
         'SELECT theme FROM users WHERE username = $1',
         [req.session.user.username]
       );
-      
+
       res.locals.theme = user.theme || "pink";
       req.session.user.theme = user.theme;  // keep session synced
     } catch (err) {
@@ -149,7 +147,12 @@ app.post('/register', async (req, res) => {
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
 
     if (existingUser) {
-      return res.status(400).send('Username already exists. Try a different one.');
+      res.render('pages/register', {
+        layout: 'secondary',
+        title: 'Register',
+        errorMessage: 'Username already exists. Try a different one.',
+        username
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -180,7 +183,7 @@ app.post('/login', async (req, res) => {
   try {
     // temporary bypass: if admin/admin, skip DB check
     if (username === 'admin' && password === 'admin') {
-      req.session.user = { username: 'admin', theme: "pink"  };
+      req.session.user = { username: 'admin', theme: "pink" };
       console.log('Logged in as admin (bypass)');
       return res.redirect('/prompts');
     }
@@ -565,10 +568,10 @@ app.get('/friends', requireLogin, async (req, res) => {
     });
   }
   catch (err) {
-      console.error(err),
+    console.error(err),
       res.status(400).json({
-      error: err,
-    });
+        error: err,
+      });
   }
 });
 
@@ -580,10 +583,10 @@ app.get('/friends/list', requireLogin, async (req, res) => {
     res.json(results);
   }
   catch (err) {
-      console.error(err),
+    console.error(err),
       res.status(400).json({
-      error: err,
-    });
+        error: err,
+      });
   }
 });
 
@@ -836,17 +839,17 @@ app.get('/friends', requireLogin, (req, res) => {
 app.get('/friends/search', requireLogin, async (req, res) => {
   const currentUser = req.session.user.username;
   const search = req.query.q || "";
-  const query = 'SELECT username, quote FROM users WHERE username ILIKE $1 AND username != $2' 
+  const query = 'SELECT username, quote FROM users WHERE username ILIKE $1 AND username != $2'
     + 'AND username NOT IN (SELECT friend FROM friends WHERE username = $2);';
   try {
     let results = await db.any(query, [`%${search}%`, currentUser]);
     res.json(results);
   }
   catch (err) {
-      console.error(err),
+    console.error(err),
       res.status(400).json({
-      error: err,
-    });
+        error: err,
+      });
   }
 });
 
@@ -857,13 +860,13 @@ app.post("/friends/add", requireLogin, async (req, res) => {
   const query = 'INSERT INTO pending_friend_requests(sender, reciever) values ($1, $2);';
   try {
     await db.none(query, [username, friendToRequest]);
-    res.json({success: true});
+    res.json({ success: true });
   }
-  catch (err ){
-      console.error(err),
+  catch (err) {
+    console.error(err),
       res.status(400).json({
-      error: err,
-    });
+        error: err,
+      });
   }
 });
 
@@ -871,17 +874,17 @@ app.delete("/friends/remove:username", requireLogin, async (req, res) => {
   const currentUser = req.session.user.username;
   const friendToRemove = req.params.username;
   const query = 'DELETE FROM friends WHERE username = $1 AND friend = $2;';
-  
+
   try {
     await db.none(query, [currentUser, friendToRemove]);
     await db.none(query, [friendToRemove, currentUser]);
-    res.json({ success: true});
+    res.json({ success: true });
   }
   catch (err) {
-      console.error(err),
+    console.error(err),
       res.status(400).json({
-      error: err,
-    });
+        error: err,
+      });
   }
 });
 
@@ -941,7 +944,7 @@ app.get('/prompts', requireLogin, async (req, res) => {
       title: 'Daily Prompts',
       username,
       prompts,
-      answeredCount, 
+      answeredCount,
       totalPrompts,
       errorMessage: null
     });
