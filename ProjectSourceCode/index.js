@@ -509,15 +509,15 @@ app.get('/profile', requireLogin, async (req, res) => {
       [username]);
     const profilePic = user?.pfp_link?.trim() ? user.pfp_link : 'sun.png';
 
-    const topTracks = Array.isArray(topTracksJson.items)
-    ? topTracksJson.items.map(track => ({
+    const topTracks = Array.isArray(user.topTracksJson.items)
+   ? user.topTracksJson.items.map(track => ({
       name: track.name,
       artist: track.artists?.[0]?.name || "Unknown Artist",
       image: track.album?.images?.[0]?.url || null,
       url: track.external_urls?.spotify || null,
       preview: track.preview_url || null,
     }))
-    : [];
+  : [];
 
     res.render('pages/profile', {
       layout: 'main',
@@ -529,7 +529,7 @@ app.get('/profile', requireLogin, async (req, res) => {
       profilePic,
       theme: user.theme || 'pink',
       spConnected: user.spotify_connected,
-      tracks: user.topTracks
+      tracks: topTracks
     });
   } catch (err) {
     console.error('Error loading profile:', err);
