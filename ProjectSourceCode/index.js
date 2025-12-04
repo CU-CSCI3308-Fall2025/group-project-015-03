@@ -1142,6 +1142,8 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
 // "i know the example code from the website had ways to get the top 5 tracks. where should i put that code?""
 
 app.get("/spotify_callback", async (req, res) => {
+  console.log("IN CALLBACK - session.verifier =", req.session.verifier);
+  console.log("IN CALLBACK - code =", req.query.code);
   const code = req.query.code;
   if (!code) {
     return res.status(400).send("No code returned from Spotify");
