@@ -1180,6 +1180,8 @@ app.post("/auth/spotify/callback", async (req, res) => {
       }
     }).then(r => r.json());
 
+    console.log("Updating Spotify info for:", req.session.user.username, "with Spotify ID:", spProfile.id);
+
     // Save minimal info in DB
     await db.query(
       `UPDATE users
