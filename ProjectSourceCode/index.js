@@ -147,13 +147,14 @@ app.post('/register', async (req, res) => {
     const existingUser = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
 
     if (existingUser) {
-      res.render('pages/register', {
+      return res.status(400).render('pages/register', {
         layout: 'secondary',
         title: 'Register',
         errorMessage: 'Username already exists. Try a different one.',
         username
       });
     }
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -192,22 +193,24 @@ app.post('/login', async (req, res) => {
     const user = await db.oneOrNone('SELECT * FROM users WHERE username = $1;', [username]);
 
     if (!user) {
-      return res.render('pages/index', {
+      return res.status(401).render('pages/index', {
         layout: 'secondary',
         title: 'Login',
         errorMessage: 'Invalid username or password',
         username
       });
+
     }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      return res.render('pages/index', {
+      return res.status(401).render('pages/index', {
         layout: 'secondary',
         title: 'Login',
         errorMessage: 'Invalid username or password',
         username
       });
+
     }
 
     req.session.user = { username: user.username, theme: user.theme || "pink" };
@@ -1075,20 +1078,24 @@ app.get('/journal', requireLogin, async (req, res) => {
   }
 });
 
-
-
-app.get('/journal/new', (req, res) => {
+app.get('/journal/new', requireLogin, (req, res) => {
   res.render('pages/newJournal', { layout: 'main' });
 });
-
 
 app.post('/journal/new', requireLogin, async (req, res) => {
   const { title, content, type } = req.body;
   const username = req.session?.user?.username;
 
+  if (!content || content.trim() === '') {
+    return res.status(400).render('pages/newJournal', {
+      layout: 'main',
+      errorMessage: 'Content is required.',
+    });
+  }
+
   try {
     await db.none(
-      `INSERT INTO journals (title, content, username, type) 
+      `INSERT INTO journals (title, content, username, type)
        VALUES ($1, $2, $3, $4)`,
       [title || 'Untitled Entry', content, username, type || 'quick']
     );
@@ -1098,22 +1105,33 @@ app.post('/journal/new', requireLogin, async (req, res) => {
 
   } catch (err) {
     console.error('Error inserting journal entry:', err);
-    res.status(500).render('pages/journal', {
+    res.status(500).render('pages/newJournal', {
       layout: 'main',
-      title: 'My Journal',
-      username,
-      errorMessage: 'Failed to save journal entry.',
-      entries: []
+      errorMessage: 'Failed to save journal entry.'
     });
   }
 });
+
 
 // POST /journal/guided - guided prompt entry
 app.post('/journal/guided', requireLogin, async (req, res) => {
   const { content, prompt_topic, prompt_text } = req.body;
   const username = req.session?.user?.username;
 
-  // generate title from topic
+  if (!prompt_topic || !prompt_text || prompt_text.trim() === '') {
+    return res.status(400).render('pages/newJournal', {
+      layout: 'main',
+      errorMessage: 'A prompt must be selected.'
+    });
+  }
+
+  if (!content || content.trim() === '') {
+    return res.status(400).render('pages/newJournal', {
+      layout: 'main',
+      errorMessage: 'Content is required.'
+    });
+  }
+
   const topicTitles = {
     anxious: 'Anxiety Reflection',
     grateful: 'Gratitude Entry',
@@ -1126,7 +1144,7 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
 
   try {
     await db.none(
-      `INSERT INTO journals (title, content, username, type, prompt_topic, prompt_text) 
+      `INSERT INTO journals (title, content, username, type, prompt_topic, prompt_text)
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [title, content, username, 'guided', prompt_topic, prompt_text]
     );
@@ -1136,15 +1154,13 @@ app.post('/journal/guided', requireLogin, async (req, res) => {
 
   } catch (err) {
     console.error('Error inserting guided journal entry:', err);
-    res.status(500).render('pages/journal', {
+    res.status(500).render('pages/newJournal', {
       layout: 'main',
-      title: 'My Journal',
-      username,
-      errorMessage: 'Failed to save guided entry.',
-      entries: []
+      errorMessage: 'Failed to save guided entry.'
     });
   }
 });
+
 
 // === SPOTIFY CONNECTION ===
 // chatGPT
