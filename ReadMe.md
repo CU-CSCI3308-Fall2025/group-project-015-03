@@ -14,7 +14,7 @@ Jackson Erb
 
 ## Technology Stack
 
-Front End: HTML, CSS, and JavaScript
+Front End: HTML, CSS, Handlebars, and JavaScript
 
 Back End: Node.js w/ Express
 
@@ -22,7 +22,7 @@ Database: PostgreSQL
 
 ## Prerequisites to run our app
 
-N/A (for now?)
+N/A 
 
 ## How to run our app
 
@@ -54,3 +54,4 @@ N/A (for now?)
 
 
 ## Permanent Link to the Deployed Version
+https://group-project-015-03.onrender.com  
